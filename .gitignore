@@ -1,0 +1,67 @@
+# ==========================================
+# Git Ignore for Captcha Research Project
+# ==========================================
+
+# --- General ---
+.DS_Store
+Thumbs.db
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.log
+
+# --- Python AI Solver (solve-captcha) ---
+solve-captcha/.venv/
+solve-captcha/venv/
+solve-captcha/env/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Dataset and temp folders
+solve-captcha/data/
+solve-captcha/temp_dataset_extracted/
+solve-captcha/temp_challenge_to_solve.png
+
+# Model weights & credentials (save space and keep private)
+solve-captcha/model/*.pth
+solve-captcha/model/alphabet.json
+solve-captcha/model/training_curves.png
+solve-captcha/demo_keys.json
+
+# --- C# SaaS Service (saas-captcha) ---
+# Build results
+**/[Bb]in/
+**/[Oo]bj/
+
+# Visual Studio files
+.vs/
+**/[Ss]tyle[Cc]op.*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code files
+.vscode/
+**/launch.json
+**/tasks.json
+
+# Rider / Resharper files
+.idea/
+*.sln.iml
+
+# Database & generated local files
+saas-captcha/src/CaptchaSaaS.Api/wwwroot/captcha_dataset.zip
+saas-captcha/src/CaptchaSaaS.Api/wwwroot/exported_datasets/
+saas-captcha/src/CaptchaSaaS.Api/wwwroot/uploads/
+saas-captcha/src/CaptchaSaaS.Infrastructure/Storage/GeneratedCaptchas/
+*.mdf
+*.ldf
+*.db
+*.sqlite
+
