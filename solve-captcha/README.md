@@ -1,6 +1,8 @@
 # Captcha AI Solver (solve-captcha)
 
-Dự án này sử dụng mô hình học sâu **PyTorch (ResNet18 Multi-Head Classification)** để nhận diện và giải tự động các mã Captcha dạng văn bản nhiễu được sinh ra từ hệ thống C# SaaS.
+Dự án này là hệ thống giải captcha tự động, chia làm hai phiên bản độc lập để phục vụ nghiên cứu và đánh giá:
+1. **`src/v1/` (AI Text Solver):** Sử dụng mô hình học sâu **PyTorch (ResNet18 Multi-Head)** để giải mã văn bản captcha dạng tĩnh nhiễu phức tạp.
+2. **`src/v2/` (OpenCV Slider Solver):** Sử dụng thuật toán xử lý ảnh **OpenCV Canny Edge + Template Matching** để tìm tọa độ lỗ khuyết mảnh ghép trượt, kết hợp bộ sinh quỹ đạo di chuyển chuột mô phỏng hành vi sinh học của con người (vượt qua bộ lọc hành vi).
 
 ---
 
@@ -10,7 +12,7 @@ Dự án này sử dụng mô hình học sâu **PyTorch (ResNet18 Multi-Head Cl
 
 1. **Khởi tạo môi trường ảo `.venv` và kích hoạt:**
    * **Windows:**
-     ```bash
+     ```powershell
      python -m venv .venv
      .venv\Scripts\activate
      ```
@@ -27,81 +29,56 @@ Dự án này sử dụng mô hình học sâu **PyTorch (ResNet18 Multi-Head Cl
 
 ---
 
-## 📊 Bước 1: Chuẩn bị dữ liệu (Dataset Setup)
+## 📊 Hướng Dẫn Sử Dụng Phiên Bản V1 (AI Text Captcha)
 
-1. Mở trình duyệt và truy cập trang Demo của C# SaaS: `http://localhost:5097/index.html` (hoặc cổng chạy thực tế của bạn).
-2. Thiết lập cấu hình Demo để kết nối API.
-3. Sinh 4.000 captcha bằng cách gọi API của SaaS qua Swagger hoặc Postman:
-   `GET http://localhost:5097/api/v1/dataset/generate?count=4000`
-4. Xuất và tải file ZIP về máy bằng cách truy cập:
-   `GET http://localhost:5097/api/v1/dataset/export`
-5. Sao chép file `captcha_dataset.zip` tải về được vào thư mục `solve-captcha/`.
-6. Chạy script để tự động giải nén và chia tập dữ liệu thành **3.000 ảnh Train** và **1.000 ảnh Test**:
-   ```bash
-   python split_dataset.py --zip captcha_dataset.zip
+### Bước 1: Chuẩn bị dữ liệu (Dataset Setup)
+1. Truy cập trang demo V1 của SaaS: `http://localhost:5097/index.html`.
+2. Sinh và tải file zip chứa 4.000 captcha mẫu huấn luyện về máy.
+3. Copy file `captcha_dataset.zip` vào thư mục `solve-captcha/`.
+4. Giải nén và phân tách dữ liệu thành tập Train (3.000) và Test (1.000):
+   ```powershell
+   python src/v1/split_dataset.py --zip captcha_dataset.zip
    ```
-   *(Dữ liệu phân chia sẽ được lưu trữ tự động trong thư mục `data/`)*
 
----
-
-## 🚀 Bước 2: Huấn luyện mô hình AI (Train Model)
-
-Chạy lệnh dưới đây để bắt đầu quá trình huấn luyện:
-```bash
-python src/train.py --epochs 15 --batch_size 64 --lr 0.001
+### Bước 2: Huấn luyện mô hình AI (Train Model)
+```powershell
+python src/v1/train.py --epochs 15 --batch_size 64 --lr 0.001
 ```
-* **Tham số:**
-  * `--epochs`: Số lượt huấn luyện (mặc định: 15).
-  * `--batch_size`: Kích thước lô dữ liệu (mặc định: 64).
-  * `--lr`: Tốc độ học (mặc định: 0.001).
-* **Kết quả:**
-  * Trọng số mô hình tốt nhất được lưu tại: `model/captcha_model.pth`.
-  * Danh sách bảng ký tự lưu tại: `model/alphabet.json`.
-  * Đồ thị Loss & Accuracy lưu tại: `model/training_curves.png`.
+*   **Kết quả:** Trọng số tốt nhất được lưu tại `model/captcha_model.pth`, danh sách ký tự lưu tại `model/alphabet.json`.
 
-*Mẹo: Nếu máy tính không có GPU và bạn muốn huấn luyện nhanh, hãy sử dụng file **`train_colab.ipynb`** trên Google Colab.*
-
----
-
-## 🔮 Bước 3: Dự đoán ảnh captcha đơn lẻ (Inference)
-
-Nếu muốn kiểm tra mô hình dự đoán thử trên một ảnh bất kỳ, hãy chạy:
-```bash
-python src/predict.py --image "đường_dẫn_đến_ảnh.png"
+### Bước 3: Dự đoán ảnh đơn lẻ
+```powershell
+python src/v1/predict.py --image "duong_dan_anh.png"
 ```
 
----
+### Bước 4: Chạy Demo giải tự động tích hợp (V1)
+```powershell
+python src/v1/auto_solve_demo.py --api_url http://localhost:5097
+```
 
-## 🎮 Bước 4: Demo Tích Hợp Tự Động (Auto Solve Demo)
-
-Đây là kịch bản chạy thử nghiệm tích hợp tự động kết nối trực tiếp với server C# SaaS đang hoạt động:
-1. Đảm bảo ứng dụng C# SaaS đang chạy (`dotnet run`).
-2. Chạy lệnh:
-   ```bash
-   python src/auto_solve_demo.py --api_url http://localhost:5097
-   ```
-3. **Kịch bản chạy:**
-   * Script Python tự động đăng ký demo trên C# SaaS để lấy SiteKey/SecretKey (nếu chưa có).
-   * Lấy thử thách captcha mới từ C# SaaS.
-   * Chuyển đổi ảnh nhận được và đưa vào mô hình AI để giải.
-   * Gửi kết quả giải của AI lên API `/verify` của C# SaaS.
-   * In ra màn hình kết quả phản hồi của server xem AI giải Đúng hay Sai.
-   * Chạy liên tiếp 5 lần để thống kê tỷ lệ giải thành công của AI.
+### Bước 5: Mở Web App trực quan của AI V1
+```powershell
+python src/v1/web_app.py
+```
+Truy cập: **[http://localhost:5001](http://localhost:5001)** để trải nghiệm giao diện kéo thả giải captcha văn bản.
 
 ---
 
-## 🎨 Bước 5: Giao Diện Web Dự Đoán Trực Quan (Web App AI Captcha Solver)
+## 🚀 Hướng Dẫn Sử Dụng Phiên Bản V2 (Slider Puzzle Captcha)
 
-Nếu muốn trải nghiệm một giao diện đồ họa kéo thả trực quan để thử nghiệm mô hình AI:
-1. Đảm bảo bạn đã sao chép `captcha_model.pth` và `alphabet.json` vào thư mục `model/`.
-2. Khởi chạy Web Server cục bộ:
-   ```bash
-   python src/web_app.py
-   ```
-3. Mở trình duyệt truy cập: **[http://localhost:5001](http://localhost:5001)**.
-4. **Tính năng chính:**
-   * Kéo thả hoặc click để tải lên ảnh Captcha bất kỳ từ máy tính.
-   * Giao diện Glassmorphism mờ ảo hiện đại cùng hiệu ứng quét ảnh động.
-   * Hiển thị kết quả dự đoán của AI dạng hoạt họa sinh động.
-   * Tích hợp thanh lịch sử giải lưu ở bộ nhớ trình duyệt (`localStorage`) hiển thị kèm hình ảnh thu nhỏ.
+Phiên bản V2 kết hợp định vị ảnh bằng OpenCV và sinh hành trình trượt chuột sinh học của con người để vượt qua bộ lọc chống Bot của Server.
 
+### Bước 1: Khởi chạy C# SaaS Server
+Đảm bảo dự án SaaS API đang chạy (`dotnet run`).
+
+### Bước 2: Chạy Demo giải tự động tích hợp (V2)
+```powershell
+python src/v2/auto_solve_demo.py --api_url http://localhost:5097
+```
+
+*   **Cơ chế hoạt động:**
+    1. Python Agent tự động lấy siteKey từ `demo_keys.json`.
+    2. Yêu cầu một thử thách mảnh ghép V2 từ server.
+    3. Sử dụng OpenCV Canny Edge để tách biên ảnh nền và mảnh ghép, định vị vị trí khuyết $X$.
+    4. Sinh hành trình trượt chuột (vận tốc biến thiên Smoothstep, rung lắc nhẹ trục Y, có overshoot) mô phỏng người thật.
+    5. Gửi lên `/verify` của server C# và nhận kết quả phản hồi thành công/thất bại.

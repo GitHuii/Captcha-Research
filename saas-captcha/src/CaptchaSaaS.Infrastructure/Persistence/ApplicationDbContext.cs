@@ -49,8 +49,11 @@ namespace CaptchaSaaS.Infrastructure.Persistence
             {
                 entity.ToTable("CaptchaChallenges");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Solution).IsRequired().HasMaxLength(4);
+                entity.Property(e => e.Solution).IsRequired().HasMaxLength(64);
                 entity.Property(e => e.ImagePath).IsRequired().HasMaxLength(512);
+                entity.Property(e => e.BlockImagePath).HasMaxLength(512).IsRequired(false);
+                entity.Property(e => e.YOffset).HasDefaultValue(0);
+                entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(32).HasDefaultValue(CaptchaType.TextV1);
                 entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
 
                 entity.HasOne(d => d.Website)

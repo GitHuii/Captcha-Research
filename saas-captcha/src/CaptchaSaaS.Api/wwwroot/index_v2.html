@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captcha SaaS Demo - Captcha V2 Slider Puzzle</title>
+    <meta name="description" content="Trang thử nghiệm xác thực captcha mảnh ghép trượt V2 tích hợp phân tích hành vi">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-gradient: radial-gradient(circle at top right, #0f172a, #020617);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient background glow */
+        .glow-circle {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .glow-1 {
+            background: #0d47a1;
+            top: 10%;
+            left: 15%;
+        }
+        .glow-2 {
+            background: #1a237e;
+            bottom: 10%;
+            right: 15%;
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 35px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -10px rgba(99, 102, 241, 0.15);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a5b4fc, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* Navigation link */
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #818cf8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.2s;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            padding-bottom: 2px;
+        }
+        .nav-link:hover {
+            color: #a5b4fc;
+        }
+
+        /* Key Status Bar */
+        .key-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .key-badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        /* Captcha Display Container */
+        .captcha-container {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 190px;
+            user-select: none;
+        }
+
+        .captcha-area {
+            position: relative;
+            width: 300px;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: #0f172a;
+        }
+
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .block-image {
+            position: absolute;
+            left: 0;
+            width: 56px;
+            height: 56px;
+            z-index: 10;
+            pointer-events: none; /* Kéo thông qua thanh trượt */
+            transition: transform 0.05s ease-out;
+            will-change: left;
+        }
+
+        .btn-refresh-float {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            transition: all 0.2s;
+            z-index: 15;
+            backdrop-filter: blur(5px);
+        }
+        .btn-refresh-float:hover {
+            background: rgba(99, 102, 241, 0.8);
+            transform: rotate(60deg);
+        }
+        .btn-refresh-float svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Slider Widget Styles */
+        .slider-wrapper {
+            width: 300px;
+            margin: 20px auto 0 auto;
+            position: relative;
+        }
+
+        .slider-track {
+            width: 100%;
+            height: 40px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .slider-bg-highlight {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: rgba(99, 102, 241, 0.2);
+            border-right: 2px solid var(--primary);
+            transition: background 0.2s;
+        }
+        .slider-bg-highlight.success {
+            background: rgba(16, 185, 129, 0.2);
+            border-right: 2px solid var(--success);
+        }
+
+        .slider-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+            z-index: 5;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .slider-thumb:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+        }
+        .slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .slider-thumb svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+        }
+
+        /* Simulation options */
+        .simulation-container {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .sim-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .sim-checkbox-label input {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        /* Results / Alerts */
+        .alert {
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideUp 0.3s ease-out;
+            text-align: left;
+        }
+        .alert.alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            display: flex;
+        }
+        .alert.alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            display: flex;
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            border-radius: 12px;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .dev-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        /* Setup view styling */
+        .setup-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .btn-setup {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-setup:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-circle glow-1"></div>
+    <div class="glow-circle glow-2"></div>
+
+    <div class="card" id="main-card">
+        <!-- Nút cấu hình cài đặt -->
+        <button id="btn-toggle-settings" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--text-muted); opacity: 0.6; transition: opacity 0.2s, transform 0.3s;" title="Cấu hình API URL">
+            <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
+                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
+        </button>
+
+        <h1>Captcha SaaS V2</h1>
+        <p class="subtitle">Thử nghiệm xác thực Captcha Mảnh Ghép Trượt</p>
+
+        <!-- Link chuyển đổi phiên bản -->
+        <a href="index.html" class="nav-link">← Chuyển về Captcha V1 (Text)</a>
+
+        <!-- Panel Cấu hình API URL -->
+        <div id="settings-panel" style="display: none; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 20px; margin-bottom: 24px; text-align: left; animation: fadeIn 0.3s ease;">
+            <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+                <label for="input-api-url" style="font-size: 0.75rem; margin-bottom: 6px;">Cấu hình C# API URL</label>
+                <input type="text" id="input-api-url" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; color: #fff;" placeholder="http://localhost:5097">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="btn-reset-cache" class="btn-setup" style="padding: 6px 12px; font-size: 0.75rem; margin: 0; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Xóa Cache / Reset</button>
+                <button id="btn-save-settings" class="btn-setup" style="padding: 6px 16px; font-size: 0.75rem; margin: 0; background: var(--primary); border-color: var(--primary); color: #fff;">Lưu cấu hình</button>
+            </div>
+        </div>
+
+        <!-- Status badge -->
+        <div id="key-badge" class="key-badge">
+            <span class="dot"></span> Đang khởi tạo kết nối...
+        </div>
+
+        <!-- Setup View (hidden once configured) -->
+        <div id="setup-view" style="display: none;" class="setup-container">
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Hệ thống chưa tìm thấy SiteKey. Vui lòng thiết lập ở bản V1 hoặc nhấn nút dưới để tự động tạo cấu hình demo nhanh.</p>
+            <button class="btn-setup" id="btn-quick-setup">Tự động khởi tạo cấu hình Demo</button>
+        </div>
+
+        <!-- Captcha App View -->
+        <div id="app-view" style="display: none;">
+            <div class="captcha-container">
+                <div id="loader-overlay" class="loader-overlay" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <div class="captcha-area" id="captcha-area">
+                    <img id="bg-img" src="" alt="Background" class="bg-image">
+                    <img id="block-img" src="" alt="Puzzle Block" class="block-image" style="top: 0px; left: 0px;">
+                    
+                    <button class="btn-refresh-float" id="btn-refresh" title="Đổi thử thách mới">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Slider Control -->
+                <div class="slider-wrapper">
+                    <div class="slider-track" id="slider-track">
+                        <div class="slider-bg-highlight" id="slider-highlight"></div>
+                        <span class="slider-text" id="slider-text">Kéo mảnh ghép sang phải...</span>
+                        <div class="slider-thumb" id="slider-thumb">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tùy chọn giả lập Bot (Dành cho Nghiên cứu) -->
+            <div class="simulation-container">
+                <label class="sim-checkbox-label">
+                    <input type="checkbox" id="chk-simulate-bot">
+                    <span>🤖 Giả lập Bot tấn công (Kéo thẳng tắp & cực nhanh)</span>
+                </label>
+            </div>
+
+            <!-- Success/Failure Alerts -->
+            <div id="alert-success" class="alert alert-success">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Chính xác! Slider khớp và quỹ đạo di chuyển hợp lệ.</span>
+            </div>
+
+            <div id="alert-danger" class="alert alert-danger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="danger-text">Đáp án sai! Vui lòng thử lại.</span>
+            </div>
+        </div>
+
+        <div class="dev-note">
+            <span style="font-weight: 600; color: #818cf8;">Ghi chú Nghiên cứu:</span> Hệ thống theo dõi chuyển động chuột thời gian thực và phân tích các tham số (vận tốc, độ lệch trục Y) để nhận diện tự động scripts giả lập.
+        </div>
+    </div>
+
+    <script>
+        let baseUrl = '';
+        let siteKey = '';
+        let secretKey = '';
+        let currentChallengeId = '';
+        
+        // Trạng thái Slider
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startTime = 0;
+        let currentXOffset = 0;
+        let trajectory = []; // Mảng lưu điểm [{x, y, t}]
+        
+        // Kích thước kéo giới hạn
+        const maxDragWidth = 300 - 56; // 244px (Khung 300px - mảnh ghép 56px)
+
+        const badge = document.getElementById('key-badge');
+        const mainCard = document.getElementById('main-card');
+        const setupView = document.getElementById('setup-view');
+        const appView = document.getElementById('app-view');
+        
+        const bgImg = document.getElementById('bg-img');
+        const blockImg = document.getElementById('block-img');
+        const loaderOverlay = document.getElementById('loader-overlay');
+        
+        const sliderTrack = document.getElementById('slider-track');
+        const sliderThumb = document.getElementById('slider-thumb');
+        const sliderHighlight = document.getElementById('slider-highlight');
+        const sliderText = document.getElementById('slider-text');
+        
+        const btnRefresh = document.getElementById('btn-refresh');
+        const btnQuickSetup = document.getElementById('btn-quick-setup');
+        const chkSimulateBot = document.getElementById('chk-simulate-bot');
+
+        const alertSuccess = document.getElementById('alert-success');
+        const alertDanger = document.getElementById('alert-danger');
+        const dangerText = document.getElementById('danger-text');
+
+        // Các nút & input cấu hình
+        const btnToggleSettings = document.getElementById('btn-toggle-settings');
+        const settingsPanel = document.getElementById('settings-panel');
+        const inputApiUrl = document.getElementById('input-api-url');
+        const btnSaveSettings = document.getElementById('btn-save-settings');
+        const btnResetCache = document.getElementById('btn-reset-cache');
+
+        function resolveBaseUrl() {
+            let savedUrl = localStorage.getItem('demo_api_url');
+            if (savedUrl) return savedUrl;
+            let origin = window.location.origin;
+            if (!origin || origin.startsWith('file') || origin === 'null') {
+                return 'http://localhost:5097';
+            }
+            return origin;
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            baseUrl = resolveBaseUrl();
+            inputApiUrl.value = baseUrl;
+
+            siteKey = localStorage.getItem('demo_site_key');
+            secretKey = localStorage.getItem('demo_secret_key');
+
+            if (siteKey && secretKey) {
+                showAppView();
+                loadCaptcha();
+            } else {
+                badge.className = 'key-badge';
+                badge.innerHTML = '⚠️ Chưa cấu hình';
+                setupView.style.display = 'flex';
+                appView.style.display = 'none';
+            }
+
+            // Gắn sự kiện drag slider
+            initSliderEvents();
+        });
+
+        btnToggleSettings.addEventListener('click', () => {
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        btnSaveSettings.addEventListener('click', () => {
+            const newUrl = inputApiUrl.value.trim();
+            if (!newUrl) return;
+            localStorage.setItem('demo_api_url', newUrl);
+            baseUrl = newUrl;
+            settingsPanel.style.display = 'none';
+            alert('Đã lưu cấu hình API: ' + newUrl);
+            if (siteKey && secretKey) loadCaptcha();
+        });
+
+        btnResetCache.addEventListener('click', () => {
+            if (confirm('Xóa cache cài đặt?')) {
+                localStorage.removeItem('demo_site_key');
+                localStorage.removeItem('demo_secret_key');
+                localStorage.removeItem('demo_api_url');
+                window.location.reload();
+            }
+        });
+
+        btnQuickSetup.addEventListener('click', async () => {
+            badge.innerHTML = '⚙️ Đang đăng ký demo...';
+            btnQuickSetup.disabled = true;
+            try {
+                // Tạo user demo
+                const userRes = await fetch(`${baseUrl}/api/v1/portal/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: `demo_${Math.floor(Math.random() * 100000)}@test.com`,
+                        password: 'DemoPassword123'
+                    })
+                });
+                
+                if (!userRes.ok && userRes.status !== 499) {
+                    throw new Error('Đăng ký user thất bại.');
+                }
+                const userData = await userRes.json();
+
+                // Tạo website demo
+                const siteRes = await fetch(`${baseUrl}/api/v1/portal/websites`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        domain: window.location.hostname || 'localhost'
+                    })
+                });
+
+                if (!siteRes.ok) throw new Error('Đăng ký website thất bại.');
+                const siteData = await siteRes.json();
+
+                localStorage.setItem('demo_site_key', siteData.siteKey);
+                localStorage.setItem('demo_secret_key', siteData.secretKey);
+                
+                siteKey = siteData.siteKey;
+                secretKey = siteData.secretKey;
+
+                showAppView();
+                loadCaptcha();
+            } catch (err) {
+                console.error(err);
+                alert(`Không thể kết nối API tại ${baseUrl}. Vui lòng kiểm tra lại cổng kết nối.`);
+                btnQuickSetup.disabled = false;
+                badge.innerHTML = '❌ Lỗi kết nối API';
+            }
+        });
+
+        function showAppView() {
+            badge.className = 'key-badge success';
+            badge.innerHTML = '✓ Đã kết nối API SaaS (V2)';
+            setupView.style.display = 'none';
+            appView.style.display = 'block';
+        }
+
+        async function loadCaptcha() {
+            hideAlerts();
+            resetSliderUI();
+            loaderOverlay.style.display = 'flex';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/v2/captcha/challenge?siteKey=${siteKey}`);
+                if (!res.ok) throw new Error('Không thể tải thử thách.');
+                
+                const data = await res.json();
+                currentChallengeId = data.challengeId;
+                
+                bgImg.src = data.bgImage;
+                blockImg.src = data.blockImage;
+                blockImg.style.top = data.yOffset + 'px';
+                blockImg.style.left = '0px';
+
+                bgImg.onload = () => {
+                    loaderOverlay.style.display = 'none';
+                };
+            } catch (err) {
+                console.error(err);
+                badge.className = 'key-badge';
+                badge.innerHTML = '❌ Lỗi tải captcha';
+                loaderOverlay.style.display = 'none';
+            }
+        }
+
+        btnRefresh.addEventListener('click', loadCaptcha);
+
+        function resetSliderUI() {
+            isDragging = false;
+            currentXOffset = 0;
+            trajectory = [];
+            
+            sliderThumb.style.left = '0px';
+            sliderHighlight.style.width = '0px';
+            sliderHighlight.classList.remove('success');
+            blockImg.style.left = '0px';
+            sliderText.style.opacity = '1';
+            
+            // Khôi phục nút kéo về gradient thường
+            sliderThumb.style.background = '';
+            sliderThumb.style.pointerEvents = 'auto';
+        }
+
+        function initSliderEvents() {
+            // Event mouse & touch cho sliderThumb
+            const onDragStart = (e) => {
+                if (loaderOverlay.style.display === 'flex') return;
+                isDragging = true;
+                
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                startTime = Date.now();
+                trajectory = [];
+                
+                // Điểm khởi đầu
+                trajectory.push({ x: 0, y: 0, t: 0 });
+                
+                sliderText.style.opacity = '0.3';
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('mouseup', onDragEnd);
+                document.addEventListener('touchmove', onDragMove, { passive: false });
+                document.addEventListener('touchend', onDragEnd);
+            };
+
+            const onDragMove = (e) => {
+                if (!isDragging) return;
+                if (e.type === 'touchmove') e.preventDefault(); // Tránh cuộn trang trên mobile
+
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                let dx = clientX - startX;
+                let dy = clientY - startY;
+
+                // Giới hạn trong khoảng track kéo
+                if (dx < 0) dx = 0;
+                if (dx > maxDragWidth) dx = maxDragWidth;
+
+                currentXOffset = dx;
+
+                // Cập nhật UI
+                sliderThumb.style.left = dx + 'px';
+                sliderHighlight.style.width = (dx + 20) + 'px';
+                blockImg.style.left = dx + 'px';
+
+                // Lưu hành trình
+                trajectory.push({
+                    x: dx,
+                    y: dy,
+                    t: Date.now() - startTime
+                });
+            };
+
+            const onDragEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                document.removeEventListener('mousemove', onDragMove);
+                document.removeEventListener('mouseup', onDragEnd);
+                document.removeEventListener('touchmove', onDragMove);
+                document.removeEventListener('touchend', onDragEnd);
+
+                // Khóa tạm thời không cho kéo tiếp
+                sliderThumb.style.pointerEvents = 'none';
+
+                verifyCaptcha();
+            };
+
+            sliderThumb.addEventListener('mousedown', onDragStart);
+            sliderThumb.addEventListener('touchstart', onDragStart);
+        }
+
+        async function verifyCaptcha() {
+            loaderOverlay.style.display = 'flex';
+            hideAlerts();
+
+            let finalX = currentXOffset;
+            let finalTrajectory = [...trajectory];
+
+            // Nếu người dùng chọn giả lập Bot, sinh quỹ đạo giả thẳng tắp và cực nhanh
+            if (chkSimulateBot.checked) {
+                finalTrajectory = [];
+                const steps = 6;
+                const totalDuration = 110; // 110ms (quá nhanh)
+                
+                for (let i = 0; i <= steps; i++) {
+                    finalTrajectory.push({
+                        x: (finalX / steps) * i,
+                        y: 0, // Độ lệch Y bằng 0 hoàn hảo (Đường thẳng tuyệt đối)
+                        t: Math.round((totalDuration / steps) * i) // Vận tốc không đổi tuyệt đối
+                    });
+                }
+            }
+
+            try {
+                const res = await fetch(`${baseUrl}/api/v2/captcha/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        secretKey: secretKey,
+                        challengeId: currentChallengeId,
+                        xOffset: finalX,
+                        trajectory: finalTrajectory
+                    })
+                });
+
+                if (!res.ok) throw new Error('Verify API failed.');
+                const result = await res.json();
+
+                loaderOverlay.style.display = 'none';
+
+                if (result.success) {
+                    alertSuccess.style.display = 'flex';
+                    sliderHighlight.classList.add('success');
+                    sliderThumb.style.background = 'var(--success)';
+                    
+                    setTimeout(() => {
+                        loadCaptcha();
+                    }, 2000);
+                } else {
+                    showError(result.error);
+                    triggerCardShake();
+                    
+                    // Đổi màu slider sang màu đỏ thất bại tạm thời
+                    sliderThumb.style.background = 'var(--danger)';
+                    setTimeout(() => {
+                        loadCaptcha();
+                    }, 1800);
+                }
+            } catch (err) {
+                console.error(err);
+                loaderOverlay.style.display = 'none';
+                showError('Không thể kết nối máy chủ để xác thực.');
+                resetSliderUI();
+            }
+        }
+
+        function showError(msg) {
+            dangerText.innerText = msg;
+            alertDanger.style.display = 'flex';
+            alertSuccess.style.display = 'none';
+        }
+
+        function hideAlerts() {
+            alertSuccess.style.display = 'none';
+            alertDanger.style.display = 'none';
+        }
+
+        function triggerCardShake() {
+            mainCard.classList.add('shake');
+            setTimeout(() => {
+                mainCard.classList.remove('shake');
+            }, 400);
+        }
+    </script>
+</body>
+</html>

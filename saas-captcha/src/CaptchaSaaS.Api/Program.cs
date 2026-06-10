@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CaptchaSaaS.Infrastructure.Persistence;
 using CaptchaSaaS.Core.Interfaces;
+using CaptchaSaaS.Core.Services;
 using CaptchaSaaS.Infrastructure.Services;
 using System.IO;
 
@@ -19,6 +20,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Đăng ký Dependency Injection
 builder.Services.AddTransient<ICaptchaGenerator, CaptchaGenerator>();
+builder.Services.AddTransient<ISliderCaptchaGenerator, SliderCaptchaGenerator>();
+builder.Services.AddTransient<ISliderTrajectoryValidator, SliderTrajectoryValidator>();
 builder.Services.AddTransient<IFileStorageService, FileStorageService>();
 
 // Cấu hình CORS để các website khác có thể nhúng widget gọi API
