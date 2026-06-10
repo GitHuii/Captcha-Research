@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captcha SaaS Demo - Captcha V3 Checkbox + Image Grid Fallback</title>
+    <meta name="description" content="Trang thử nghiệm xác thực captcha hành vi ẩn V3 tích hợp lưới chọn ảnh dự phòng">
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Material Icons alignment */
+        .material-icons {
+            font-size: 20px;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        /* Glassmorphism Dashboard Layout */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+            z-index: 10;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 35px 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* Navigation Links */
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-link:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        .key-badge {
+            align-self: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .key-badge.success {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        /* Forms styling */
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-input {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Captcha Checkbox Widget CSS */
+        .captcha-checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            text-align: left;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .captcha-checkbox-container:hover {
+            border-color: rgba(37, 99, 235, 0.4);
+            background: #f1f5f9;
+        }
+        .checkbox-box {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #94a3b8;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .checkbox-checkmark {
+            display: none;
+            color: var(--success);
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .checkbox-spinner {
+            display: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            padding: 14px 20px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-top: 10px;
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Canvas visualizer */
+        .visualizer-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 250px;
+        }
+        .visualizer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .visualizer-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .visualizer-stats {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .mouse-canvas {
+            background: #f8fafc;
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Verification status dashboard */
+        .results-panel {
+            margin-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .score-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 5px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            position: relative;
+        }
+        .score-circle.good {
+            border-color: var(--success);
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.02);
+        }
+        .score-circle.bad {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.02);
+        }
+
+        .score-info {
+            text-align: left;
+        }
+        .score-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+        .score-status {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* Fallback Modal Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 380px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .modal-prompt {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.08);
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* 3x3 Grid */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .grid-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.25s;
+        }
+        .grid-item:hover img {
+            transform: scale(1.06);
+        }
+
+        /* Selected State */
+        .grid-item.selected {
+            border-color: var(--primary);
+            transform: scale(0.96);
+        }
+        .grid-item.selected::after {
+            content: "check";
+            font-family: 'Material Icons';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--primary);
+            color: #fff;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            animation: bounceIn 0.2s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .btn-modal-cancel {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: var(--text-muted);
+        }
+        .btn-modal-cancel:hover {
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+        .btn-modal-verify {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-modal-verify:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-refresh-grid {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .btn-refresh-grid:hover {
+            color: var(--text-main);
+        }
+
+        /* Alerts */
+        .alert-toast {
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            animation: slideIn 0.25s ease;
+        }
+        .alert-toast.success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        .alert-toast.danger {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(0,0,0,0.05);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Settings Card & Panel */
+        .settings-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .btn-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .btn-setup {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-setup:hover {
+            background: #f8fafc;
+            border-color: var(--text-muted);
+        }
+
+        .simulation-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+
+        .shaker {
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-circle glow-1"></div>
+    <div class="glow-circle glow-2"></div>
+
+    <div class="dashboard-container">
+        
+        <!-- Left Side: Interactive Demo Form -->
+        <div class="card">
+            <!-- Settings Toggle button -->
+            <button id="btn-toggle-settings" class="btn-icon" title="Cấu hình API">
+                <span class="material-icons">settings</span>
+            </button>
+
+            <h1>Captcha SaaS V3</h1>
+            <p class="subtitle">Passive Behavioral Scoring + Image Grid Fallback</p>
+
+            <!-- Navigation Links -->
+            <div class="nav-links">
+                <a href="index_v1.html" class="nav-link">
+                    <span class="material-icons" style="font-size: 14px;">arrow_back</span> Captcha V1 (Text)
+                </a>
+                <a href="index_v2.html" class="nav-link">
+                    <span class="material-icons" style="font-size: 14px;">arrow_back</span> Captcha V2 (Slider)
+                </a>
+            </div>
+
+            <!-- API Settings Card -->
+            <div class="settings-card" id="settings-card">
+                <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+                    <label>Cấu hình C# API URL</label>
+                    <input type="text" class="form-input" id="input-api-url" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-size:0.85rem;" placeholder="http://localhost:5097">
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn-modal btn-modal-cancel" id="btn-reset-cache">Xóa Cache</button>
+                    <button class="btn-modal btn-modal-verify" id="btn-save-settings">Lưu</button>
+                </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="key-badge" id="key-badge">
+                <span class="material-icons" style="font-size: 15px;">sync</span> Đang kết nối API...
+            </div>
+
+            <!-- Quick setup view if needed -->
+            <div id="setup-view" style="display: none; text-align: center; padding: 20px 0;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Chưa phát hiện SiteKey/SecretKey. Nhấp vào đây để cấu hình demo nhanh.</p>
+                <button class="btn-setup" id="btn-quick-setup" style="width: 100%; padding: 12px;">Tạo Cấu Hình Demo</button>
+            </div>
+
+            <!-- Form submission view -->
+            <div id="form-view" style="display: none;">
+                <form id="demo-login-form" onsubmit="handleFormSubmit(event)">
+                    <div class="form-group">
+                        <label for="username">Tài khoản / Email</label>
+                        <input type="text" class="form-input" id="username" value="admin@captcha-research.vn" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" class="form-input" id="password" value="SuperSecretPassword123" required>
+                    </div>
+
+                    <div class="simulation-container">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="chk-simulate-bot" style="accent-color: var(--primary);">
+                            <span>🤖 Giả lập Bot gõ phím tức thời & Không rê chuột</span>
+                        </label>
+                    </div>
+
+                    <!-- Captcha Checkbox Widget -->
+                    <div class="captcha-checkbox-container" id="captcha-checkbox-container">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="checkbox-box" id="checkbox-box">
+                                <div class="checkbox-spinner" id="checkbox-spinner"></div>
+                                <span class="checkbox-checkmark" id="checkbox-checkmark">✓</span>
+                            </div>
+                            <span id="checkbox-label" style="font-size: 0.9rem; font-weight: 500; color: var(--text-main);">Tôi không phải là người máy</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; opacity: 0.75;">
+                            <svg style="width: 24px; height: 24px; fill: var(--primary);" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                            </svg>
+                            <span style="font-size: 0.55rem; color: var(--text-muted); margin-top: 2px; font-weight: 600; letter-spacing: 0.05em;">SECURE CORE</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btn-form-submit" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Đăng nhập</button>
+                </form>
+
+                <div class="results-panel" id="results-panel" style="display: none;">
+                    <div class="score-display">
+                        <div class="score-circle" id="score-circle">--</div>
+                        <div class="score-info">
+                            <div class="score-label">Độ tin cậy (Human Score)</div>
+                            <div class="score-status" id="score-status">Chưa xác định</div>
+                        </div>
+                    </div>
+                    
+                    <div id="evaluation-details" style="font-size: 0.8rem; text-align: left; color: var(--text-muted); background: #f8fafc; border:1px solid #e2e8f0; padding: 12px; border-radius: 10px; line-height: 1.4;">
+                    </div>
+                    
+                    <div id="alert-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Real-time Telemetry Dashboard (Research Visualizer) -->
+        <div class="card">
+            <div class="visualizer-container">
+                <div class="visualizer-header">
+                    <span class="visualizer-title">
+                        <span class="material-icons" style="font-size: 18px; margin-right:4px;">biotech</span> GIÁM SÁT HÀNH VI CHUỘT
+                    </span>
+                    <span class="visualizer-stats" id="mouse-stats">0 điểm</span>
+                </div>
+                <canvas class="mouse-canvas" id="mouse-canvas"></canvas>
+                <div style="display: flex; gap: 10px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); justify-content: space-between;">
+                    <span>Bản đồ tọa độ chuột vẽ trong viewport</span>
+                    <button id="btn-clear-canvas" style="background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
+                        <span class="material-icons" style="font-size:14px;">delete_outline</span> Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fallback 3x3 Image Grid Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-card" id="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Xác nhận bạn không phải là máy</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Chọn tất cả các ảnh có:</div>
+                <div class="modal-prompt" id="modal-prompt">Xe hơi</div>
+            </div>
+
+            <!-- Lưới ảnh 3x3 -->
+            <div class="image-grid" id="image-grid">
+                <!-- Sẽ được fill bằng JavaScript -->
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-refresh-grid" id="btn-reload-grid" title="Đổi lưới ảnh khác">
+                    <span class="material-icons">refresh</span>
+                </button>
+                <div class="modal-actions">
+                    <button class="btn-modal btn-modal-cancel" id="btn-close-modal">Hủy</button>
+                    <button class="btn-modal btn-modal-verify" id="btn-verify-grid">Xác minh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhúng script theo dõi hành vi ẩn -->
+    <script src="assets/js/v3-tracker.js"></script>
+
+    <script>
+        let baseUrl = '';
+        let siteKey = '';
+        let secretKey = '';
+        let activeChallengeId = '';
+        let selectedIndices = [];
+        let isCaptchaVerified = false;
+        let isCaptchaVerifying = false;
+
+        // Element handles
+        const keyBadge = document.getElementById('key-badge');
+        const setupView = document.getElementById('setup-view');
+        const formView = document.getElementById('form-view');
+        const btnToggleSettings = document.getElementById('btn-toggle-settings');
+        const settingsCard = document.getElementById('settings-card');
+        const inputApiUrl = document.getElementById('input-api-url');
+        const btnSaveSettings = document.getElementById('btn-save-settings');
+        const btnResetCache = document.getElementById('btn-reset-cache');
+        const btnQuickSetup = document.getElementById('btn-quick-setup');
+        
+        // Form & results
+        const demoForm = document.getElementById('demo-login-form');
+        const resultsPanel = document.getElementById('results-panel');
+        const scoreCircle = document.getElementById('score-circle');
+        const scoreStatus = document.getElementById('score-status');
+        const evalDetails = document.getElementById('evaluation-details');
+        const alertContainer = document.getElementById('alert-container');
+        const chkSimulateBot = document.getElementById('chk-simulate-bot');
+        const btnFormSubmit = document.getElementById('btn-form-submit');
+
+        // Checkbox handles
+        const captchaCheckbox = document.getElementById('captcha-checkbox-container');
+        const checkboxBox = document.getElementById('checkbox-box');
+        const checkboxSpinner = document.getElementById('checkbox-spinner');
+        const checkboxCheckmark = document.getElementById('checkbox-checkmark');
+        const checkboxLabel = document.getElementById('checkbox-label');
+
+        // Modal grid elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalCard = document.getElementById('modal-card');
+        const modalPrompt = document.getElementById('modal-prompt');
+        const imageGrid = document.getElementById('image-grid');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnVerifyGrid = document.getElementById('btn-verify-grid');
+        const btnReloadGrid = document.getElementById('btn-reload-grid');
+
+        // Realtime canvas handles
+        const canvas = document.getElementById('mouse-canvas');
+        const ctx = canvas.getContext('2d');
+        const mouseStats = document.getElementById('mouse-stats');
+        const btnClearCanvas = document.getElementById('btn-clear-canvas');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight - 40;
+        }
+
+        // Tự động giải quyết API URL
+        function resolveBaseUrl() {
+            let savedUrl = localStorage.getItem('demo_api_url');
+            if (savedUrl) return savedUrl;
+            let origin = window.location.origin;
+            if (!origin || origin.startsWith('file') || origin === 'null') {
+                return 'http://localhost:5097';
+            }
+            return origin;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            baseUrl = resolveBaseUrl();
+            inputApiUrl.value = baseUrl;
+
+            siteKey = localStorage.getItem('demo_site_key');
+            secretKey = localStorage.getItem('demo_secret_key');
+
+            if (siteKey && secretKey) {
+                showAppView();
+            } else {
+                keyBadge.className = 'key-badge';
+                keyBadge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">warning</span> Chưa cấu hình';
+                setupView.style.display = 'block';
+                formView.style.display = 'none';
+            }
+
+            // Canvas setup
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            initCanvasTracing();
+            
+            // Checkbox click listener
+            captchaCheckbox.addEventListener('click', handleCheckboxClick);
+        });
+
+        function showAppView() {
+            keyBadge.className = 'key-badge success';
+            keyBadge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">check_circle</span> Đã kết nối API SaaS (V3)';
+            setupView.style.display = 'none';
+            formView.style.display = 'block';
+        }
+
+        btnToggleSettings.addEventListener('click', () => {
+            settingsCard.style.display = settingsCard.style.display === 'none' ? 'block' : 'none';
+        });
+
+        btnSaveSettings.addEventListener('click', () => {
+            const newUrl = inputApiUrl.value.trim();
+            if (!newUrl) return;
+            localStorage.setItem('demo_api_url', newUrl);
+            baseUrl = newUrl;
+            settingsCard.style.display = 'none';
+            alert('Đã lưu cấu hình API: ' + newUrl);
+            window.location.reload();
+        });
+
+        btnResetCache.addEventListener('click', () => {
+            if (confirm('Xóa cache cài đặt?')) {
+                localStorage.removeItem('demo_site_key');
+                localStorage.removeItem('demo_secret_key');
+                localStorage.removeItem('demo_api_url');
+                window.location.reload();
+            }
+        });
+
+        btnQuickSetup.addEventListener('click', async () => {
+            keyBadge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px; animation:spin 1s linear infinite;">sync</span> Đang khởi tạo...';
+            btnQuickSetup.disabled = true;
+            try {
+                // Đăng ký User
+                const userRes = await fetch(`${baseUrl}/api/v1/portal/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: `demo_v3_${Math.floor(Math.random() * 100000)}@test.com`,
+                        password: 'DemoPassword123'
+                    })
+                });
+                if (!userRes.ok) throw new Error('Đăng ký User thất bại.');
+                const userData = await userRes.json();
+
+                // Đăng ký Website
+                const siteRes = await fetch(`${baseUrl}/api/v1/portal/websites`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        domain: window.location.hostname || 'localhost'
+                    })
+                });
+                if (!siteRes.ok) throw new Error('Đăng ký Website thất bại.');
+                const siteData = await siteRes.json();
+
+                localStorage.setItem('demo_site_key', siteData.siteKey);
+                localStorage.setItem('demo_secret_key', siteData.secretKey);
+                
+                siteKey = siteData.siteKey;
+                secretKey = siteData.secretKey;
+
+                showAppView();
+            } catch (err) {
+                console.error(err);
+                alert(`Không thể kết nối API tại ${baseUrl}.`);
+                btnQuickSetup.disabled = false;
+                keyBadge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">error</span> Lỗi kết nối';
+            }
+        });
+
+        // Vẽ hành trình chuột thời gian thực lên Canvas để báo cáo
+        function initCanvasTracing() {
+            let lastX = 0;
+            let lastY = 0;
+            let pointCount = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                if (formView.style.display === 'none') return;
+                
+                // Nhận diện tương đối trong Canvas
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = (e.clientX - rect.left) * scaleX;
+                const y = (e.clientY - rect.top) * scaleY;
+
+                // Chỉ vẽ khi chuột nằm quanh vùng màn hình viewport
+                if (pointCount === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = 'rgba(37, 99, 235, 0.4)';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+
+                // Vẽ hạt chấm sáng ở điểm hiện tại
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.7)';
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                pointCount++;
+                mouseStats.innerText = `${pointCount} điểm`;
+            });
+
+            btnClearCanvas.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pointCount = 0;
+                mouseStats.innerText = '0 điểm';
+            });
+        }
+
+        // Xử lý click chọn Checkbox
+        async function handleCheckboxClick() {
+            if (isCaptchaVerified || isCaptchaVerifying) return;
+            
+            isCaptchaVerifying = true;
+            checkboxSpinner.style.display = 'block';
+            checkboxCheckmark.style.display = 'none';
+            checkboxBox.style.borderColor = 'var(--primary)';
+            checkboxLabel.innerText = "Đang xác minh hành vi...";
+            
+            resultsPanel.style.display = 'none';
+            alertContainer.innerHTML = '';
+
+            // 1. Thu thập Telemetry thực
+            let telemetry = window.captchaV3Tracker.getTelemetry();
+
+            // 2. Chế độ GIẢ LẬP BOT
+            if (chkSimulateBot.checked) {
+                telemetry = {
+                    mouseActions: [],
+                    keyActions: telemetry.keyActions.map(k => ({ ...k, t: 1 })),
+                    clickActions: [{ x: 100, y: 100, target: "btn", t: 1 }],
+                    scrollActions: [],
+                    fingerprint: {
+                        ...telemetry.fingerprint,
+                        webdriver: true,
+                        isHeadless: true
+                    }
+                };
+            }
+
+            try {
+                const res = await fetch(`${baseUrl}/api/v3/captcha/verify-behavior`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        siteKey: siteKey,
+                        telemetry: telemetry
+                    })
+                });
+
+                if (!res.ok) throw new Error('Yêu cầu xác thực hành vi bị lỗi.');
+
+                const data = await res.json();
+                activeChallengeId = data.challengeId;
+
+                resultsPanel.style.display = 'block';
+                updateScoreUI(data.score, data.success, data.reasons);
+
+                if (data.success) {
+                    setCaptchaVerifiedSuccess(data.score);
+                } else if (data.requireFallback) {
+                    showToastAlert("Phát hiện bất thường! Yêu cầu thực hiện xác thực chọn ảnh bổ sung.", "danger");
+                    checkboxLabel.innerText = "Yêu cầu chọn hình ảnh...";
+                    
+                    setTimeout(() => {
+                        openFallbackModal(data);
+                    }, 800);
+                }
+            } catch (err) {
+                console.error(err);
+                showToastAlert("Không thể gọi API chấm điểm hành vi.", "danger");
+                resetCheckboxUI();
+            }
+        }
+
+        // Thiết lập trạng thái xác minh thành công
+        function setCaptchaVerifiedSuccess(score, fromImageGrid = false) {
+            isCaptchaVerified = true;
+            isCaptchaVerifying = false;
+            
+            checkboxSpinner.style.display = 'none';
+            checkboxCheckmark.style.display = 'block';
+            checkboxBox.style.borderColor = 'var(--success)';
+            checkboxBox.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+            
+            if (fromImageGrid) {
+                checkboxLabel.innerText = "Đã xác thực hình ảnh ✓";
+                showToastAlert("Xác thực lưới ảnh thành công! Bạn được quyền đăng nhập.", "success");
+            } else {
+                checkboxLabel.innerText = "Tôi là con người ✓";
+                showToastAlert(`Xác minh hành vi thành công! Điểm tin cậy: ${score.toFixed(2)}`, "success");
+            }
+
+            btnFormSubmit.disabled = false;
+            btnFormSubmit.style.opacity = '1';
+            btnFormSubmit.style.cursor = 'pointer';
+            
+            window.captchaV3Tracker.reset();
+        }
+
+        function resetCheckboxUI() {
+            isCaptchaVerified = false;
+            isCaptchaVerifying = false;
+            
+            checkboxSpinner.style.display = 'none';
+            checkboxCheckmark.style.display = 'none';
+            checkboxBox.style.borderColor = '#94a3b8';
+            checkboxBox.style.backgroundColor = 'transparent';
+            checkboxLabel.innerText = "Tôi không phải là người máy";
+            
+            btnFormSubmit.disabled = true;
+            btnFormSubmit.style.opacity = '0.6';
+            btnFormSubmit.style.cursor = 'not-allowed';
+        }
+
+        // Xử lý gửi Form đăng nhập
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            if (!isCaptchaVerified) {
+                alert("Vui lòng tích chọn ô xác minh trước.");
+                return;
+            }
+            
+            btnFormSubmit.disabled = true;
+            btnFormSubmit.innerText = "Đang đăng nhập...";
+            
+            showToastAlert(`Xin chúc mừng! Form đăng nhập đã được gửi đi kèm Token xác thực: ${activeChallengeId}`, "success");
+            
+            setTimeout(() => {
+                alert(`Đăng nhập thành công!\nToken xác thực (Challenge ID): ${activeChallengeId}`);
+                btnFormSubmit.disabled = false;
+                btnFormSubmit.innerText = "Đăng nhập";
+                resetCheckboxUI();
+                resultsPanel.style.display = 'none';
+            }, 1000);
+        }
+
+        function updateScoreUI(score, isSuccess, reasons) {
+            scoreCircle.innerText = score.toFixed(2);
+            scoreCircle.className = 'score-circle';
+            
+            if (isSuccess) {
+                scoreCircle.classList.add('good');
+                scoreStatus.innerText = "Độ tin cậy cao (Người dùng thật)";
+                scoreStatus.style.color = "var(--success)";
+            } else {
+                scoreCircle.classList.add('bad');
+                scoreStatus.innerText = "Độ tin cậy thấp (Bị nghi ngờ)";
+                scoreStatus.style.color = "var(--danger)";
+            }
+
+            if (reasons && reasons.length > 0) {
+                evalDetails.innerHTML = `<strong>Lý do đánh giá:</strong><ul style="margin-top:5px;padding-left:15px;">` +
+                    reasons.map(r => `<li>${r}</li>`).join('') + `</ul>`;
+            } else {
+                evalDetails.innerHTML = "Hành vi hoàn toàn tự nhiên và không phát hiện dấu vết trình giả lập.";
+            }
+        }
+
+        function showToastAlert(message, type) {
+            alertContainer.innerHTML = `
+                <div class="alert-toast ${type}">
+                    <span class="material-icons" style="font-size:16px;">${type === 'success' ? 'check_circle' : 'error'}</span>
+                    <span>${message}</span>
+                </div>`;
+        }
+
+        // Quản lý Modal Chọn ảnh dự phòng
+        function openFallbackModal(challengeData) {
+            modalPrompt.innerText = challengeData.promptText;
+            selectedIndices = [];
+            
+            imageGrid.innerHTML = '';
+            challengeData.images.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.dataset.index = img.index;
+                item.innerHTML = `<img src="${img.imageUrl}" alt="grid-item-${img.index}">`;
+                
+                item.addEventListener('click', () => {
+                    const idx = parseInt(item.dataset.index);
+                    if (item.classList.contains('selected')) {
+                        item.classList.remove('selected');
+                        selectedIndices = selectedIndices.filter(i => i !== idx);
+                    } else {
+                        item.classList.add('selected');
+                        selectedIndices.push(idx);
+                    }
+                });
+                
+                imageGrid.appendChild(item);
+            });
+
+            modalOverlay.classList.add('active');
+        }
+
+        btnReloadGrid.addEventListener('click', async () => {
+            btnReloadGrid.disabled = true;
+            btnReloadGrid.style.opacity = '0.5';
+            
+            try {
+                let telemetry = window.captchaV3Tracker.getTelemetry();
+                telemetry.fingerprint.isHeadless = true; // ép buộc fallback
+                
+                const res = await fetch(`${baseUrl}/api/v3/captcha/verify-behavior`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ siteKey: siteKey, telemetry: telemetry })
+                });
+                const data = await res.json();
+                activeChallengeId = data.challengeId;
+                openFallbackModal(data);
+            } catch(e) {
+                console.error(e);
+            } finally {
+                btnReloadGrid.disabled = false;
+                btnReloadGrid.style.opacity = '1';
+            }
+        });
+
+        btnCloseModal.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+            resetCheckboxUI();
+        });
+
+        btnVerifyGrid.addEventListener('click', async () => {
+            btnVerifyGrid.disabled = true;
+            btnVerifyGrid.innerText = "Đang kiểm tra...";
+
+            try {
+                const res = await fetch(`${baseUrl}/api/v3/captcha/verify-image`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        secretKey: secretKey,
+                        challengeId: activeChallengeId,
+                        selectedIndices: selectedIndices
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    modalOverlay.classList.remove('active');
+                    setCaptchaVerifiedSuccess(1.0, true);
+                    
+                    scoreCircle.className = 'score-circle good';
+                    scoreCircle.innerText = "1.00";
+                    scoreStatus.innerText = "Đã xác thực (Vượt qua thử thách ảnh)";
+                    scoreStatus.style.color = "var(--success)";
+                    evalDetails.innerText = "Vượt qua thử thách phụ chọn ảnh chính xác.";
+                } else {
+                    modalCard.classList.add('shaker');
+                    setTimeout(() => {
+                        modalCard.classList.remove('shaker');
+                    }, 400);
+                    
+                    alert("Sai ảnh! Thử thách đã hết hạn. Hệ thống đang sinh lưới ảnh mới.");
+                    btnReloadGrid.click();
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi xác minh lưới ảnh.");
+            } finally {
+                btnVerifyGrid.disabled = false;
+                btnVerifyGrid.innerText = "Xác minh";
+            }
+        });
+    </script>
+</body>
+</html>

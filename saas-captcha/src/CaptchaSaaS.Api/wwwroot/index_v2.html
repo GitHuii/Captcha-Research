@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captcha SaaS Demo - Captcha V2 Slider Puzzle</title>
+    <title>Captcha SaaS Demo - Captcha V2 Slider</title>
     <meta name="description" content="Trang thử nghiệm xác thực captcha mảnh ghép trượt V2 tích hợp phân tích hành vi">
-    <!-- Google Fonts -->
+    
+    <!-- Google Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
             --success: #10b981;
             --danger: #ef4444;
-            --bg-gradient: radial-gradient(circle at top right, #0f172a, #020617);
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
         }
 
         * {
@@ -30,113 +33,101 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: var(--bg-gradient);
+            background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow-x: hidden;
-            position: relative;
+            padding: 20px;
         }
 
-        /* Ambient background glow */
-        .glow-circle {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.4;
-        }
-        .glow-1 {
-            background: #0d47a1;
-            top: 10%;
-            left: 15%;
-        }
-        .glow-2 {
-            background: #1a237e;
-            bottom: 10%;
-            right: 15%;
+        /* Material Icons alignment */
+        .material-icons {
+            font-size: 20px;
+            vertical-align: middle;
+            line-height: 1;
         }
 
-        /* Glassmorphism Card */
+        /* Minimalist Card */
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(20px);
-            border-radius: 28px;
-            padding: 35px;
+            border-radius: 16px;
+            padding: 35px 30px;
             width: 100%;
-            max-width: 480px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 440px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
             text-align: center;
             position: relative;
-            transform: translateY(0);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: box-shadow 0.2s, transform 0.2s;
         }
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 30px 60px -10px rgba(99, 102, 241, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
         }
 
         h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #a5b4fc, #818cf8, #6366f1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
-        /* Navigation link */
+        /* Navigation Links */
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
         .nav-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #818cf8;
+            color: var(--primary);
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: color 0.2s;
-            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
-            padding-bottom: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .nav-link:hover {
-            color: #a5b4fc;
+            color: var(--primary-hover);
+            text-decoration: underline;
         }
 
-        /* Key Status Bar */
+        /* Connection Badge */
         .key-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #a5b4fc;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: var(--text-muted);
             padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .key-badge.success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #34d399;
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
         }
 
-        /* Captcha Display Container */
+        /* Captcha Box */
         .captcha-container {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
             position: relative;
@@ -152,9 +143,10 @@
             position: relative;
             width: 300px;
             height: 150px;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             background: #0f172a;
         }
 
@@ -171,37 +163,37 @@
             width: 56px;
             height: 56px;
             z-index: 10;
-            pointer-events: none; /* Kéo thông qua thanh trượt */
+            pointer-events: none;
             transition: transform 0.05s ease-out;
             will-change: left;
         }
 
+        /* Float refresh button */
         .btn-refresh-float {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            width: 36px;
-            height: 36px;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #e2e8f0;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-main);
+            color: var(--text-muted);
             transition: all 0.2s;
             z-index: 15;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(4px);
         }
         .btn-refresh-float:hover {
-            background: rgba(99, 102, 241, 0.8);
-            transform: rotate(60deg);
+            color: var(--text-main);
+            background: #ffffff;
+            transform: rotate(45deg);
         }
-        .btn-refresh-float svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
+        .btn-refresh-float .material-icons {
+            font-size: 16px;
         }
 
         /* Slider Widget Styles */
@@ -214,9 +206,9 @@
         .slider-track {
             width: 100%;
             height: 40px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
             position: relative;
             display: flex;
             align-items: center;
@@ -230,22 +222,20 @@
             top: 0;
             height: 100%;
             width: 0;
-            background: rgba(99, 102, 241, 0.2);
+            background: rgba(37, 99, 235, 0.08);
             border-right: 2px solid var(--primary);
-            transition: background 0.2s;
         }
         .slider-bg-highlight.success {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.08);
             border-right: 2px solid var(--success);
         }
 
         .slider-text {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 500;
             z-index: 2;
             pointer-events: none;
-            transition: opacity 0.2s;
         }
 
         .slider-thumb {
@@ -254,44 +244,39 @@
             top: 0;
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: var(--primary);
             border-radius: 50%;
             cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
             z-index: 5;
-            transition: background 0.2s, transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
         }
         .slider-thumb:hover {
             transform: scale(1.05);
-            background: linear-gradient(135deg, #818cf8, #6366f1);
+            background: var(--primary-hover);
         }
         .slider-thumb:active {
             cursor: grabbing;
             transform: scale(0.95);
         }
-        .slider-thumb svg {
-            width: 18px;
-            height: 18px;
-            fill: #fff;
-        }
 
         /* Simulation options */
         .simulation-container {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
             margin-bottom: 20px;
             text-align: left;
         }
         .sim-checkbox-label {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
+            gap: 8px;
+            font-size: 0.8rem;
             color: var(--text-muted);
             cursor: pointer;
             user-select: none;
@@ -303,51 +288,100 @@
 
         /* Results / Alerts */
         .alert {
-            border-radius: 14px;
-            padding: 14px 18px;
+            border-radius: 10px;
+            padding: 12px 16px;
             margin-top: 15px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             display: none;
             align-items: center;
-            gap: 10px;
-            animation: slideUp 0.3s ease-out;
+            gap: 8px;
+            animation: slideUp 0.25s ease-out;
             text-align: left;
         }
         .alert.alert-success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #34d399;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
             display: flex;
         }
         .alert.alert-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger);
             display: flex;
         }
 
-        /* Loader */
+        /* Loader Overlay */
         .loader-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(255, 255, 255, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 20;
-            border-radius: 12px;
+            border-radius: 8px;
         }
         .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(255,255,255,0.1);
+            width: 24px;
+            height: 24px;
+            border: 2.5px solid rgba(0,0,0,0.05);
             border-radius: 50%;
             border-top-color: var(--primary);
             animation: spin 0.8s linear infinite;
+        }
+
+        /* Settings Card & Panel */
+        .settings-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .btn-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .btn-setup {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-setup:hover {
+            background: #f8fafc;
+            border-color: var(--text-muted);
         }
 
         /* Animations */
@@ -355,11 +389,11 @@
             to { transform: rotate(360deg); }
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .shake {
@@ -372,78 +406,56 @@
         }
 
         .dev-note {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
-            margin-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 12px;
-        }
-
-        /* Setup view styling */
-        .setup-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            margin: 20px 0;
-        }
-        .btn-setup {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 10px 20px;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-setup:hover {
-            background: rgba(99, 102, 241, 0.1);
-            border-color: var(--primary);
+            margin-top: 24px;
+            border-top: 1px solid var(--card-border);
+            padding-top: 14px;
         }
     </style>
 </head>
 <body>
 
-    <div class="glow-circle glow-1"></div>
-    <div class="glow-circle glow-2"></div>
-
     <div class="card" id="main-card">
-        <!-- Nút cấu hình cài đặt -->
-        <button id="btn-toggle-settings" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--text-muted); opacity: 0.6; transition: opacity 0.2s, transform 0.3s;" title="Cấu hình API URL">
-            <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
-                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-            </svg>
+        <!-- Settings Toggle button -->
+        <button id="btn-toggle-settings" class="btn-icon" title="Cấu hình API">
+            <span class="material-icons">settings</span>
         </button>
 
         <h1>Captcha SaaS V2</h1>
         <p class="subtitle">Thử nghiệm xác thực Captcha Mảnh Ghép Trượt</p>
+        
+        <!-- Navigation Links -->
+        <div class="nav-links">
+            <a href="index_v1.html" class="nav-link">
+                <span class="material-icons" style="font-size: 14px;">arrow_back</span> Captcha V1 (Text)
+            </a>
+            <a href="index_v3.html" class="nav-link">
+                Captcha V3 (Checkbox) <span class="material-icons" style="font-size: 14px;">arrow_forward</span>
+            </a>
+        </div>
 
-        <!-- Link chuyển đổi phiên bản -->
-        <a href="index.html" class="nav-link">← Chuyển về Captcha V1 (Text)</a>
-
-        <!-- Panel Cấu hình API URL -->
-        <div id="settings-panel" style="display: none; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 20px; margin-bottom: 24px; text-align: left; animation: fadeIn 0.3s ease;">
+        <!-- API Settings Card -->
+        <div class="settings-card" id="settings-panel">
             <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-                <label for="input-api-url" style="font-size: 0.75rem; margin-bottom: 6px;">Cấu hình C# API URL</label>
-                <input type="text" id="input-api-url" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; color: #fff;" placeholder="http://localhost:5097">
+                <label for="input-api-url" style="font-size: 0.7rem;">Cấu hình C# API URL</label>
+                <input type="text" id="input-api-url" class="form-input" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-size:0.85rem;" placeholder="http://localhost:5097">
             </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="btn-reset-cache" class="btn-setup" style="padding: 6px 12px; font-size: 0.75rem; margin: 0; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Xóa Cache / Reset</button>
-                <button id="btn-save-settings" class="btn-setup" style="padding: 6px 16px; font-size: 0.75rem; margin: 0; background: var(--primary); border-color: var(--primary); color: #fff;">Lưu cấu hình</button>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button id="btn-reset-cache" class="btn-setup" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.02);">Xóa Cache</button>
+                <button id="btn-save-settings" class="btn-setup" style="background: var(--primary); border-color: var(--primary); color: #fff;">Lưu</button>
             </div>
         </div>
 
         <!-- Status badge -->
         <div id="key-badge" class="key-badge">
-            <span class="dot"></span> Đang khởi tạo kết nối...
+            <span class="material-icons" style="font-size: 15px;">sync</span> Đang kết nối API...
         </div>
 
         <!-- Setup View (hidden once configured) -->
         <div id="setup-view" style="display: none;" class="setup-container">
-            <p style="font-size: 0.9rem; color: var(--text-muted);">Hệ thống chưa tìm thấy SiteKey. Vui lòng thiết lập ở bản V1 hoặc nhấn nút dưới để tự động tạo cấu hình demo nhanh.</p>
-            <button class="btn-setup" id="btn-quick-setup">Tự động khởi tạo cấu hình Demo</button>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">Hệ thống chưa tìm thấy SiteKey. Vui lòng thiết lập ở bản V1 hoặc nhấn nút dưới để tự động tạo cấu hình demo nhanh.</p>
+            <button class="btn-setup" id="btn-quick-setup" style="width: 100%; padding: 12px;">Khởi tạo cấu hình Demo</button>
         </div>
 
         <!-- Captcha App View -->
@@ -458,9 +470,7 @@
                     <img id="block-img" src="" alt="Puzzle Block" class="block-image" style="top: 0px; left: 0px;">
                     
                     <button class="btn-refresh-float" id="btn-refresh" title="Đổi thử thách mới">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                        </svg>
+                        <span class="material-icons">refresh</span>
                     </button>
                 </div>
 
@@ -470,9 +480,7 @@
                         <div class="slider-bg-highlight" id="slider-highlight"></div>
                         <span class="slider-text" id="slider-text">Kéo mảnh ghép sang phải...</span>
                         <div class="slider-thumb" id="slider-thumb">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                            </svg>
+                            <span class="material-icons" style="color: #fff; font-size:18px;">chevron_right</span>
                         </div>
                     </div>
                 </div>
@@ -488,24 +496,18 @@
 
             <!-- Success/Failure Alerts -->
             <div id="alert-success" class="alert alert-success">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+                <span class="material-icons">check_circle</span>
                 <span>Chính xác! Slider khớp và quỹ đạo di chuyển hợp lệ.</span>
             </div>
 
             <div id="alert-danger" class="alert alert-danger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
+                <span class="material-icons">error</span>
                 <span id="danger-text">Đáp án sai! Vui lòng thử lại.</span>
             </div>
         </div>
 
         <div class="dev-note">
-            <span style="font-weight: 600; color: #818cf8;">Ghi chú Nghiên cứu:</span> Hệ thống theo dõi chuyển động chuột thời gian thực và phân tích các tham số (vận tốc, độ lệch trục Y) để nhận diện tự động scripts giả lập.
+            <span style="font-weight: 600; color: var(--primary);">Ghi chú Nghiên cứu:</span> Hệ thống theo dõi chuyển động chuột thời gian thực và phân tích các tham số (vận tốc, độ lệch trục Y) để nhận diện tự động scripts giả lập.
         </div>
     </div>
 
@@ -577,8 +579,8 @@
                 loadCaptcha();
             } else {
                 badge.className = 'key-badge';
-                badge.innerHTML = '⚠️ Chưa cấu hình';
-                setupView.style.display = 'flex';
+                badge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">warning</span> Chưa cấu hình';
+                setupView.style.display = 'block';
                 appView.style.display = 'none';
             }
 
@@ -610,7 +612,7 @@
         });
 
         btnQuickSetup.addEventListener('click', async () => {
-            badge.innerHTML = '⚙️ Đang đăng ký demo...';
+            badge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px; animation:spin 1s linear infinite;">sync</span> Đang khởi tạo...';
             btnQuickSetup.disabled = true;
             try {
                 // Tạo user demo
@@ -651,15 +653,16 @@
                 loadCaptcha();
             } catch (err) {
                 console.error(err);
-                alert(`Không thể kết nối API tại ${baseUrl}. Vui lòng kiểm tra lại cổng kết nối.`);
+                alert(`Không thể kết nối API tại ${baseUrl}`);
                 btnQuickSetup.disabled = false;
-                badge.innerHTML = '❌ Lỗi kết nối API';
+                badge.className = 'key-badge';
+                badge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">error</span> Lỗi kết nối';
             }
         });
 
         function showAppView() {
             badge.className = 'key-badge success';
-            badge.innerHTML = '✓ Đã kết nối API SaaS (V2)';
+            badge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">check_circle</span> Đã kết nối API SaaS';
             setupView.style.display = 'none';
             appView.style.display = 'block';
         }
@@ -687,7 +690,7 @@
             } catch (err) {
                 console.error(err);
                 badge.className = 'key-badge';
-                badge.innerHTML = '❌ Lỗi tải captcha';
+                badge.innerHTML = '<span class="material-icons" style="font-size:15px; margin-right:4px;">error</span> Lỗi tải captcha';
                 loaderOverlay.style.display = 'none';
             }
         }
@@ -705,13 +708,11 @@
             blockImg.style.left = '0px';
             sliderText.style.opacity = '1';
             
-            // Khôi phục nút kéo về gradient thường
-            sliderThumb.style.background = '';
+            sliderThumb.style.backgroundColor = '';
             sliderThumb.style.pointerEvents = 'auto';
         }
 
         function initSliderEvents() {
-            // Event mouse & touch cho sliderThumb
             const onDragStart = (e) => {
                 if (loaderOverlay.style.display === 'flex') return;
                 isDragging = true;
@@ -724,7 +725,6 @@
                 startTime = Date.now();
                 trajectory = [];
                 
-                // Điểm khởi đầu
                 trajectory.push({ x: 0, y: 0, t: 0 });
                 
                 sliderText.style.opacity = '0.3';
@@ -736,7 +736,7 @@
 
             const onDragMove = (e) => {
                 if (!isDragging) return;
-                if (e.type === 'touchmove') e.preventDefault(); // Tránh cuộn trang trên mobile
+                if (e.type === 'touchmove') e.preventDefault();
 
                 const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
                 const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
@@ -744,18 +744,15 @@
                 let dx = clientX - startX;
                 let dy = clientY - startY;
 
-                // Giới hạn trong khoảng track kéo
                 if (dx < 0) dx = 0;
                 if (dx > maxDragWidth) dx = maxDragWidth;
 
                 currentXOffset = dx;
 
-                // Cập nhật UI
                 sliderThumb.style.left = dx + 'px';
                 sliderHighlight.style.width = (dx + 20) + 'px';
                 blockImg.style.left = dx + 'px';
 
-                // Lưu hành trình
                 trajectory.push({
                     x: dx,
                     y: dy,
@@ -772,9 +769,7 @@
                 document.removeEventListener('touchmove', onDragMove);
                 document.removeEventListener('touchend', onDragEnd);
 
-                // Khóa tạm thời không cho kéo tiếp
                 sliderThumb.style.pointerEvents = 'none';
-
                 verifyCaptcha();
             };
 
@@ -789,17 +784,16 @@
             let finalX = currentXOffset;
             let finalTrajectory = [...trajectory];
 
-            // Nếu người dùng chọn giả lập Bot, sinh quỹ đạo giả thẳng tắp và cực nhanh
             if (chkSimulateBot.checked) {
                 finalTrajectory = [];
                 const steps = 6;
-                const totalDuration = 110; // 110ms (quá nhanh)
+                const totalDuration = 110;
                 
                 for (let i = 0; i <= steps; i++) {
                     finalTrajectory.push({
                         x: (finalX / steps) * i,
-                        y: 0, // Độ lệch Y bằng 0 hoàn hảo (Đường thẳng tuyệt đối)
-                        t: Math.round((totalDuration / steps) * i) // Vận tốc không đổi tuyệt đối
+                        y: 0,
+                        t: Math.round((totalDuration / steps) * i)
                     });
                 }
             }
@@ -824,17 +818,16 @@
                 if (result.success) {
                     alertSuccess.style.display = 'flex';
                     sliderHighlight.classList.add('success');
-                    sliderThumb.style.background = 'var(--success)';
+                    sliderThumb.style.backgroundColor = 'var(--success)';
                     
                     setTimeout(() => {
                         loadCaptcha();
-                    }, 2000);
+                    }, 1800);
                 } else {
                     showError(result.error);
                     triggerCardShake();
                     
-                    // Đổi màu slider sang màu đỏ thất bại tạm thời
-                    sliderThumb.style.background = 'var(--danger)';
+                    sliderThumb.style.backgroundColor = 'var(--danger)';
                     setTimeout(() => {
                         loadCaptcha();
                     }, 1800);
@@ -842,7 +835,7 @@
             } catch (err) {
                 console.error(err);
                 loaderOverlay.style.display = 'none';
-                showError('Không thể kết nối máy chủ để xác thực.');
+                showError('Không thể kết nối máy chủ.');
                 resetSliderUI();
             }
         }
