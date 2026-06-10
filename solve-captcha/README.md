@@ -1,14 +1,16 @@
-# Captcha AI Solver (solve-captcha)
+# Captcha AI & CV Solver (solve-captcha)
 
-Dự án này là hệ thống giải captcha tự động, chia làm hai phiên bản độc lập để phục vụ nghiên cứu và đánh giá:
-1. **`src/v1/` (AI Text Solver):** Sử dụng mô hình học sâu **PyTorch (ResNet18 Multi-Head)** để giải mã văn bản captcha dạng tĩnh nhiễu phức tạp.
-2. **`src/v2/` (OpenCV Slider Solver):** Sử dụng thuật toán xử lý ảnh **OpenCV Canny Edge + Template Matching** để tìm tọa độ lỗ khuyết mảnh ghép trượt, kết hợp bộ sinh quỹ đạo di chuyển chuột mô phỏng hành vi sinh học của con người (vượt qua bộ lọc hành vi).
+Dự án này chứa hệ thống giải mã captcha tự động bằng Python, phục vụ nghiên cứu và đánh giá bảo mật của các cơ chế captcha tĩnh lẫn động. Dự án được cấu trúc khoa học thành 3 phiên bản độc lập tương ứng với các giải pháp trên SaaS:
+
+- **`src/v1/` (AI Text Solver):** Sử dụng mạng nơ-ron sâu học máy PyTorch (CRNN/CNN Multi-Head) để giải mã văn bản tĩnh nhiễu phức tạp.
+- **`src/v2/` (OpenCV Slider Solver - Đã tách file):** Định vị tọa độ khuyết và giả lập di chuột sinh học kéo mảnh ghép trượt vượt qua bộ lọc.
+- **`src/v3/` (AI Behavioral Checkbox Solver - Đã tách file):** Mô phỏng hành vi di chuột Bezier + gõ phím trễ ngẫu nhiên ngầm để vượt qua kiểm tra hành vi, đồng thời giải lưới ảnh 3x3 bằng mô hình MobileNetV3 pretrained.
 
 ---
 
 ## ⚙️ Hướng dẫn cài đặt cục bộ (Local Setup)
 
-Đảm bảo bạn đã cài đặt Python 3.10+ trên máy tính của mình.
+Đảm bảo bạn đã cài đặt Python 3.10+ trên máy tính.
 
 1. **Khởi tạo môi trường ảo `.venv` và kích hoạt:**
    * **Windows:**
@@ -32,53 +34,62 @@ Dự án này là hệ thống giải captcha tự động, chia làm hai phiên
 ## 📊 Hướng Dẫn Sử Dụng Phiên Bản V1 (AI Text Captcha)
 
 ### Bước 1: Chuẩn bị dữ liệu (Dataset Setup)
-1. Truy cập trang demo V1 của SaaS: `http://localhost:5097/index.html`.
-2. Sinh và tải file zip chứa 4.000 captcha mẫu huấn luyện về máy.
-3. Copy file `captcha_dataset.zip` vào thư mục `solve-captcha/`.
-4. Giải nén và phân tách dữ liệu thành tập Train (3.000) và Test (1.000):
+1. Tải file ZIP dataset chứa các captcha mẫu sinh từ C# SaaS về máy.
+2. Sao chép tệp `captcha_dataset.zip` vào thư mục `solve-captcha/`.
+3. Phân tách tập dữ liệu thành Train và Test:
    ```powershell
-   python src/v1/split_dataset.py --zip captcha_dataset.zip
+   .\.venv\Scripts\python src/v1/split_dataset.py --zip captcha_dataset.zip
    ```
 
 ### Bước 2: Huấn luyện mô hình AI (Train Model)
 ```powershell
-python src/v1/train.py --epochs 15 --batch_size 64 --lr 0.001
+.\.venv\Scripts\python src/v1/train.py --epochs 15 --batch_size 64 --lr 0.001
 ```
 *   **Kết quả:** Trọng số tốt nhất được lưu tại `model/captcha_model.pth`, danh sách ký tự lưu tại `model/alphabet.json`.
 
 ### Bước 3: Dự đoán ảnh đơn lẻ
 ```powershell
-python src/v1/predict.py --image "duong_dan_anh.png"
+.\.venv\Scripts\python src/v1/predict.py --image "duong_dan_anh.png"
 ```
 
 ### Bước 4: Chạy Demo giải tự động tích hợp (V1)
 ```powershell
-python src/v1/auto_solve_demo.py --api_url http://localhost:5097
+.\.venv\Scripts\python src/v1/auto_solve_demo.py --api_url http://localhost:5097
 ```
 
 ### Bước 5: Mở Web App trực quan của AI V1
 ```powershell
-python src/v1/web_app.py
+.\.venv\Scripts\python src/v1/web_app.py
 ```
 Truy cập: **[http://localhost:5001](http://localhost:5001)** để trải nghiệm giao diện kéo thả giải captcha văn bản.
 
 ---
 
-## 🚀 Hướng Dẫn Sử Dụng Phiên Bản V2 (Slider Puzzle Captcha)
+## 🧩 Hướng Dẫn Sử Dụng Phiên Bản V2 (Slider Puzzle Captcha)
 
-Phiên bản V2 kết hợp định vị ảnh bằng OpenCV và sinh hành trình trượt chuột sinh học của con người để vượt qua bộ lọc chống Bot của Server.
+Phiên bản V2 được phân tách thành các module khoa học:
+- **`trajectory.py`**: Chứa thuật toán sinh chuyển động trượt chuột sinh học của con người (bao gồm vận tốc kéo biến thiên, độ rung lắc hình sin nhẹ, điểm trượt quá đà overshoot và giật lùi chỉnh sửa).
+- **`solver.py`**: Sử dụng OpenCV Canny Edge và Template Matching để so khớp vị trí mảnh ghép trên ảnh nền chính nhằm trích xuất khoảng cách trượt $X$.
+- **`auto_solve_demo.py`**: Script chạy thử nghiệm tự động tích hợp gửi request lên server API để trượt giải và nhận phản hồi.
 
-### Bước 1: Khởi chạy C# SaaS Server
-Đảm bảo dự án SaaS API đang chạy (`dotnet run`).
-
-### Bước 2: Chạy Demo giải tự động tích hợp (V2)
+### Chạy thử nghiệm tự động:
 ```powershell
-python src/v2/auto_solve_demo.py --api_url http://localhost:5097
+.\.venv\Scripts\python src/v2/auto_solve_demo.py --api_url http://localhost:5097
 ```
+*(Hệ thống sẽ chạy liên tiếp 5 lượt trượt giải và hiển thị kết quả thành công/thất bại).*
 
-*   **Cơ chế hoạt động:**
-    1. Python Agent tự động lấy siteKey từ `demo_keys.json`.
-    2. Yêu cầu một thử thách mảnh ghép V2 từ server.
-    3. Sử dụng OpenCV Canny Edge để tách biên ảnh nền và mảnh ghép, định vị vị trí khuyết $X$.
-    4. Sinh hành trình trượt chuột (vận tốc biến thiên Smoothstep, rung lắc nhẹ trục Y, có overshoot) mô phỏng người thật.
-    5. Gửi lên `/verify` của server C# và nhận kết quả phản hồi thành công/thất bại.
+---
+
+## 🧠 Hướng Dẫn Sử Dụng Phiên Bản V3 (Behavioral Checkbox + Fallback Grid)
+
+Phiên bản V3 được phân tách thành các module khoa học:
+- **`telemetry.py`**: Trình giả lập hành vi sinh học của người thật: sinh quỹ đạo di chuyển chuột ngẫu nhiên dựa trên **Đường cong Bezier bậc 3** đi qua các vùng input trước khi click checkbox, giả lập gõ phím trễ ngẫu nhiên mô phỏng tốc độ gõ phím thật.
+- **`classifier.py`**: Bộ tải mô hình học sâu **MobileNetV3 (Large Pretrained)**. Tự động tải 9 ảnh trong thử thách dự phòng của server, phân loại bằng AI và tự động ánh xạ nhãn ImageNet sang 4 danh mục đích (chó, mèo, xe, cây).
+- **`auto_solve_demo.py`**: Script chạy thử nghiệm tích hợp thực hiện hai kịch bản:
+  1. *Kịch bản 1 (Naive Bot)*: Thao tác trơn tuột không chuột, không delay $\rightarrow$ Bị server chặn và yêu cầu fallback.
+  2. *Kịch bản 2 (Stealth Bot + AI Grid Bypass)*: Gửi hành vi di chuột Bezier tinh vi kết hợp gọi mô hình MobileNetV3 tự động giải lưới ảnh để vượt qua captcha.
+
+### Chạy thử nghiệm tự động:
+```powershell
+.\.venv\Scripts\python src/v3/auto_solve_demo.py
+```

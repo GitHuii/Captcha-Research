@@ -3,7 +3,8 @@ import json
 import base64
 import argparse
 import requests
-from solver import solve_slider_captcha, generate_human_trajectory
+from solver import solve_slider_captcha
+from trajectory import generate_human_trajectory
 
 def main():
     parser = argparse.ArgumentParser(description="Chạy Demo tích hợp tự động giải Captcha V2: Nhận Slider Captcha -> Giải bằng OpenCV -> Sinh quỹ đạo kéo chuột -> Gửi xác thực.")
@@ -12,58 +13,56 @@ def main():
     args = parser.parse_args()
 
     api_url = args.api_url.rstrip('/')
-    keys_file = "demo_keys.json"
+    keys_file = os.path.join("config", "demo_keys.json")
+    
+    # 1. Đọc hoặc tự động khởi tạo cặp khóa SiteKey/SecretKey thử nghiệm
+    # Tìm file ở thư mục config/ (chạy từ root) hoặc ../../config/ (chạy từ src/v2/)
+    if not os.path.exists(keys_file):
+        fallback_path = os.path.join("..", "..", "config", "demo_keys.json")
+        if os.path.exists(fallback_path):
+            keys_file = fallback_path
+
     site_key = ""
     secret_key = ""
 
-    # 1. Đọc hoặc tự động khởi tạo cặp khóa SiteKey/SecretKey thử nghiệm
-    # Xem xét ở thư mục gốc của solver-captcha hoặc thư mục mẹ (nếu chạy từ root)
     if os.path.exists(keys_file):
         with open(keys_file, 'r') as f:
             keys = json.load(f)
             site_key = keys.get("siteKey")
             secret_key = keys.get("secretKey")
-            print("🔑 Đã nạp khóa cấu hình từ demo_keys.json")
+            print(f"🔑 Đã nạp khóa cấu hình từ {keys_file}")
     else:
-        # Kiểm tra thử ở thư mục mẹ
-        parent_keys_path = os.path.join("..", keys_file)
-        if os.path.exists(parent_keys_path):
-            with open(parent_keys_path, 'r') as f:
-                keys = json.load(f)
-                site_key = keys.get("siteKey")
-                secret_key = keys.get("secretKey")
-                print("🔑 Đã nạp khóa cấu hình từ ../demo_keys.json")
-        else:
-            print("⚙️ Không tìm thấy demo_keys.json. Đang đăng ký tự động trên C# SaaS...")
-            try:
-                # Đăng ký user
-                user_res = requests.post(f"{api_url}/api/v1/portal/users", json={
-                    "email": f"python_ai_v2_agent_{os.getpid()}@test.com",
-                    "password": "PythonAgentPassword123"
-                })
-                user_res.raise_for_status()
-                user_data = user_res.json()
+        print(f"⚙️ Không tìm thấy {keys_file}. Đang đăng ký tự động trên C# SaaS...")
+        try:
+            # Đăng ký user
+            user_res = requests.post(f"{api_url}/api/v1/portal/users", json={
+                "email": f"python_ai_v2_agent_{os.getpid()}@test.com",
+                "password": "PythonAgentPassword123"
+            })
+            user_res.raise_for_status()
+            user_data = user_res.json()
 
-                # Đăng ký website
-                site_res = requests.post(f"{api_url}/api/v1/portal/websites", json={
-                    "userId": user_data["id"],
-                    "domain": "localhost"
-                })
-                site_res.raise_for_status()
-                site_data = site_res.json()
+            # Đăng ký website
+            site_res = requests.post(f"{api_url}/api/v1/portal/websites", json={
+                "userId": user_data["id"],
+                "domain": "localhost"
+            })
+            site_res.raise_for_status()
+            site_data = site_res.json()
 
-                site_key = site_data["siteKey"]
-                secret_key = site_data["secretKey"]
+            site_key = site_data["siteKey"]
+            secret_key = site_data["secretKey"]
 
-                # Lưu lại
-                with open(keys_file, 'w') as f:
-                    json.dump({"siteKey": site_key, "secretKey": secret_key}, f)
-                print("🚀 Đăng ký thành công! Đã lưu khóa vào demo_keys.json")
-            except Exception as e:
-                print(f"❌ Không thể kết nối hoặc đăng ký trên C# SaaS tại: {api_url}")
-                print(f"Chi tiết lỗi: {e}")
-                print("Hãy chắc chắn rằng ứng dụng C# SaaS Web API đang chạy bằng lệnh 'dotnet run'!")
-                return
+            # Lưu lại
+            os.makedirs(os.path.dirname(keys_file), exist_ok=True)
+            with open(keys_file, 'w') as f:
+                json.dump({"siteKey": site_key, "secretKey": secret_key}, f)
+            print(f"🚀 Đăng ký thành công! Đã lưu khóa vào {keys_file}")
+        except Exception as e:
+            print(f"❌ Không thể kết nối hoặc đăng ký trên C# SaaS tại: {api_url}")
+            print(f"Chi tiết lỗi: {e}")
+            print("Hãy chắc chắn rằng ứng dụng C# SaaS Web API đang chạy bằng lệnh 'dotnet run'!")
+            return
 
     # 2. Chạy Demo giải Captcha V2 tự động 5 lần liên tục
     print(f"\n🎮 BẮT ĐẦU CHẠY THỬ NGHIỆM TỰ ĐỘNG GIẢI CAPTCHA V2 (5 lượt)...")

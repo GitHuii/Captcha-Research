@@ -18,7 +18,7 @@ def main():
     args = parser.parse_args()
 
     api_url = args.api_url.rstrip('/')
-    keys_file = "demo_keys.json"
+    keys_file = os.path.join("config", "demo_keys.json")
     site_key = ""
     secret_key = ""
 
@@ -34,9 +34,9 @@ def main():
             keys = json.load(f)
             site_key = keys.get("siteKey")
             secret_key = keys.get("secretKey")
-            print("🔑 Đã nạp khóa cấu hình sẵn từ demo_keys.json")
+            print(f"🔑 Đã nạp khóa cấu hình sẵn từ {keys_file}")
     else:
-        print("⚙️ Không tìm thấy demo_keys.json. Đang đăng ký tự động trên C# SaaS...")
+        print(f"⚙️ Không tìm thấy {keys_file}. Đang đăng ký tự động trên C# SaaS...")
         try:
             # Đăng ký user
             user_res = requests.post(f"{api_url}/api/v1/portal/users", json={
@@ -58,9 +58,10 @@ def main():
             secret_key = site_data["secretKey"]
 
             # Lưu lại để lần sau không phải đăng ký lại
+            os.makedirs(os.path.dirname(keys_file), exist_ok=True)
             with open(keys_file, 'w') as f:
                 json.dump({"siteKey": site_key, "secretKey": secret_key}, f)
-            print("🚀 Đăng ký thành công! Đã lưu khóa vào demo_keys.json")
+            print(f"🚀 Đăng ký thành công! Đã lưu khóa vào {keys_file}")
         except Exception as e:
             print(f"❌ Không thể kết nối hoặc đăng ký trên C# SaaS tại: {api_url}")
             print(f"Chi tiết lỗi: {e}")
