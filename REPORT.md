@@ -1,8 +1,8 @@
 # 📊 BÁO CÁO NGHIÊN CỨU TỔNG KẾT
 # Hệ thống Nhận diện CAPTCHA UNETI bằng Deep Learning
 
-> **Tác giả**: Nguyễn Viết Huy, Hoàng Thanh Chiến
-> **Ngày hoàn thành**: 25/06/2026
+> **Tác giả**: Nguyễn Viết Huy  
+> **Ngày hoàn thành**: 25/06/2026  
 > **Độ chính xác đạt được**: **97.63% Word Accuracy** (536/549 ảnh test đúng)
 
 ---
@@ -185,36 +185,34 @@ Huấn luyện được thực hiện trên **Google Colab** (GPU T4/V100) do m�
 Hệ thống suy luận cuối cùng kết hợp **4 mô hình** (2 nhánh × 2 backbone) cùng kỹ thuật **Test-Time Augmentation (TTA)**:
 
 ```
-                    ┌─────────────────────────────────────┐
-                    │          Ảnh CAPTCHA gốc (RGB)       │
-                    └──────────┬──────────┬────────────────┘
-                               │          │
-                    ┌──────────▼──┐  ┌────▼─────────────┐
-                    │ HSV Denoise  │  │  Giữ nguyên RGB  │
-                    │ (Binarize)   │  │  (Không lọc)     │
-                    └──────┬──────┘  └────┬─────────────┘
-                           │              │
-              ┌────────────┴───┐    ┌─────┴────────────┐
-              │ Nhánh Binarized│    │   Nhánh RGB      │
-              │                │    │                  │
-         ┌────┴────┐  ┌───────┴┐  ┌┴────────┐  ┌─────┴──┐
-         │ResNet34  │  │ResNet18│  │ResNet34 │  │ResNet18│
-         │(TTA ×4)  │  │(TTA×4) │  │(TTA ×4) │  │(TTA×4) │
-         └────┬────┘  └───┬────┘  └────┬────┘  └────┬───┘
-              │           │            │             │
-              ▼           ▼            ▼             ▼
-         P_bin_34    P_bin_18     P_rgb_34      P_rgb_18
-              │           │            │             │
-              └─────┬─────┘            └──────┬──────┘
-                    ▼                         ▼
-          P_bin = 0.80×P34 + 0.20×P18  P_rgb = 0.80×P34 + 0.20×P18
-                    │                         │
-                    └────────────┬────────────┘
-                                 ▼
-                    P_final = 0.50×P_bin + 0.50×P_rgb
-                                 │
-                                 ▼
-                          argmax → Kết quả
+                     ┌──────────────────────────────────────────────────────────┐
+                     │                  Ảnh CAPTCHA gốc (RGB)                   │
+                     └────────────┬───────────────────────────────┬─────────────┘
+                                  │                               │
+                                  ▼                               ▼
+                     ┌──────────────────────────┐    ┌──────────────────────────┐
+                     │  HSV Denoise (Binarize)  │    │Giữ nguyên RGB (Không lọc)│
+                     └─────┬─────────────┬──────┘    └─────┬─────────────┬──────┘
+                           │             │                 │             │
+                           ▼             ▼                 ▼             ▼
+                     ┌──────────┐  ┌──────────┐      ┌──────────┐  ┌──────────┐
+                     │ ResNet34 │  │ ResNet18 │      │ ResNet34 │  │ ResNet18 │
+                     │ (TTA ×4) │  │ (TTA ×4) │      │ (TTA ×4) │  │ (TTA ×4) │
+                     └────┬─────┘  └────┬─────┘      └────┬─────┘  └────┬─────┘
+                          │             │                 │             │
+                          ▼             ▼                 ▼             ▼
+                      P_bin_34      P_bin_18          P_rgb_34      P_rgb_18
+                          │             │                 │             │
+                          └──────┬──────┘                 └──────┬──────┘
+                                 ▼                               ▼
+                    P_bin = 0.8*P34 + 0.2*P18        P_rgb = 0.8*P34 + 0.2*P18
+                                 │                               │
+                                 └───────────────┬───────────────┘
+                                                 ▼
+                                  P_final = 0.5*P_bin + 0.5*P_rgb
+                                                 │
+                                                 ▼
+                                          argmax → Kết quả
 ```
 
 ### 5.2. Test-Time Augmentation (TTA)
