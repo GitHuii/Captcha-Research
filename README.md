@@ -9,7 +9,7 @@ Hệ thống nhận diện CAPTCHA tự động cho Đại học Kinh tế - K�
 ## 📁 Cấu trúc dự án
 
 ```
-solve-captcha/
+Captcha-Research/ (Project Root)
 ├── README.md                  # Hướng dẫn sử dụng
 ├── REPORT.md                  # Báo cáo nghiên cứu tổng kết chi tiết
 ├── requirements.txt           # Thư viện Python cần thiết
@@ -84,11 +84,19 @@ python -m src.captcha_uneti.evaluation.compare
 ### Huấn luyện mô hình (Google Colab / GPU)
 
 ```bash
-# ResNet34 Binarized
+# === HUẤN LUYỆN RESNET34 ===
+# ResNet34 Binarized (HSV Denoised)
 python -m src.captcha_uneti.training.train --model resnet34 --epochs 150 --seed 42
 
-# ResNet34 RGB
+# ResNet34 RGB (Raw Image)
 python -m src.captcha_uneti.training.train --model resnet34 --epochs 150 --seed 42 --rgb
+
+# === HUẤN LUYỆN RESNET18 ===
+# ResNet18 Binarized (HSV Denoised)
+python -m src.captcha_uneti.training.train --model resnet18 --epochs 150 --seed 42
+
+# ResNet18 RGB (Raw Image)
+python -m src.captcha_uneti.training.train --model resnet18 --epochs 150 --seed 42 --rgb
 ```
 
 ### Gán nhãn thủ công (Label Tool)
