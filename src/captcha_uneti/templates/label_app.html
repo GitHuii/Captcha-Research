@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captcha Labeling Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.4);
+            --success: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem 1rem 1rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .stats-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-badge::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        main {
+            width: 100%;
+            max-width: 1200px;
+            padding: 1.5rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2rem;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .workspace-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-height: 450px;
+            position: relative;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8b5cf6, #10b981);
+            border-radius: 9999px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .captcha-display-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px;
+            width: 100%;
+            max-width: 400px;
+            transition: border-color 0.3s;
+            position: relative;
+        }
+
+        .captcha-display-container:hover {
+            border-color: var(--primary);
+        }
+
+        .captcha-img {
+            max-width: 100%;
+            height: auto;
+            transform: scale(2);
+            image-rendering: pixelated;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .label-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-main);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .label-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #7c3aed;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 150px);
+            min-height: 450px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            padding-right: 0.2rem;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .grid-cell:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .grid-cell.labeled {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+
+        .grid-cell.current {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--primary);
+            color: #a78bfa;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Webkit scrollbar for custom design */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .hotkeys-help {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .hotkeys-help kbd {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-family: inherit;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Captcha Labeler Dashboard</h1>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--text-muted);">
+                <input type="checkbox" id="toggle-conflicts" style="accent-color: var(--primary); transform: scale(1.1); cursor: pointer;">
+                Chỉ hiện nhãn nghi ngờ sai (Conflicts)
+            </label>
+            <div class="stats-badge" id="stats-badge">Loading...</div>
+        </div>
+    </header>
+
+    <main>
+        <div class="workspace-card">
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span id="progress-text">Progress: 0 / 0 (0%)</span>
+                    <span id="file-name-display">captcha_0.png</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="captcha-display-container">
+                <img id="captcha-img" class="captcha-img" src="" alt="Loading Captcha...">
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="label-input" class="label-input" maxlength="4" placeholder="????" autocomplete="off" autofocus>
+                <div class="btn-container">
+                    <button class="btn btn-secondary" id="btn-prev">← Prev</button>
+                    <button class="btn btn-primary" id="btn-next">Next →</button>
+                </div>
+            </div>
+
+            <div class="hotkeys-help">
+                Phím tắt: <kbd>Enter</kbd> để Lưu & Đi tiếp | <kbd>Space</kbd> để lấy Gợi ý AI | <kbd>←</kbd> <kbd>→</kbd> để di chuyển | Nhãn tự động đổi thành Chữ In Hoa.
+            </div>
+        </div>
+
+        <div class="sidebar-card">
+            <div class="sidebar-title">
+                <span>Danh sách ảnh</span>
+                <span id="grid-count" style="font-size: 0.85rem; color: var(--text-muted)">0 ảnh</span>
+            </div>
+            <div class="grid-container" id="grid-container">
+                <!-- Grid cells will be injected here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentIndex = 0;
+        let totalCount = 0;
+        let imagesList = [];
+        let labelsMap = {};
+        
+        let filterConflicts = false;
+        let conflictIndicesList = [];
+
+        // DOM elements
+        const captchaImg = document.getElementById('captcha-img');
+        const labelInput = document.getElementById('label-input');
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const statsBadge = document.getElementById('stats-badge');
+        const gridContainer = document.getElementById('grid-container');
+        const gridCount = document.getElementById('grid-count');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const toggleConflicts = document.getElementById('toggle-conflicts');
+
+        // Fetch overall status on load
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                totalCount = data.total;
+                labelsMap = data.labels || {};
+                
+                // Build images list
+                imagesList = [];
+                for(let i=0; i<totalCount; i++) {
+                    imagesList.push({
+                        index: i,
+                        filename: `captcha_${i}.png`
+                    });
+                }
+                
+                // If there are conflicts, let's fetch them on start
+                const confRes = await fetch('/api/conflicts');
+                const confData = await confRes.json();
+                conflictIndicesList = confData.conflicts || [];
+                
+                if (conflictIndicesList.length > 0) {
+                    toggleConflicts.disabled = false;
+                    document.getElementById('toggle-conflicts').parentElement.style.color = 'var(--text-main)';
+                    document.getElementById('toggle-conflicts').parentElement.title = `Quét thấy ${conflictIndicesList.length} nhãn nghi ngờ sai lệch.`;
+                } else {
+                    toggleConflicts.disabled = true;
+                    document.getElementById('toggle-conflicts').parentElement.style.color = 'var(--text-muted)';
+                    document.getElementById('toggle-conflicts').parentElement.title = "Không phát hiện nhãn sai lệch nào.";
+                }
+
+                // Find first unlabeled index to start there
+                let startIdx = 0;
+                for(let i=0; i<totalCount; i++) {
+                    if(!labelsMap[`captcha_${i}.png`]) {
+                        startIdx = i;
+                        break;
+                    }
+                }
+                currentIndex = startIdx;
+                
+                gridCount.textContent = `${totalCount} ảnh`;
+                buildSidebarGrid();
+                loadImage(currentIndex);
+            } catch(e) {
+                console.error("Error fetching status:", e);
+                statsBadge.textContent = "Error connecting server";
+            }
+        }
+
+        // Build grid view in sidebar
+        function buildSidebarGrid() {
+            gridContainer.innerHTML = '';
+            
+            let listToRender = [];
+            if (filterConflicts) {
+                listToRender = conflictIndicesList;
+            } else {
+                for (let i = 0; i < totalCount; i++) {
+                    listToRender.push(i);
+                }
+            }
+            
+            gridCount.textContent = `${listToRender.length} ảnh`;
+            
+            listToRender.forEach(i => {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.textContent = i;
+                
+                const fn = `captcha_${i}.png`;
+                if(labelsMap[fn]) {
+                    cell.classList.add('labeled');
+                }
+                if(i === currentIndex) {
+                    cell.classList.add('current');
+                }
+                
+                cell.addEventListener('click', () => {
+                    saveCurrentLabelAndGoTo(i);
+                });
+                
+                gridContainer.appendChild(cell);
+            });
+        }
+
+        // Navigation helper
+        function getNextIndex(current, direction) {
+            if (!filterConflicts) {
+                let nextIdx = current + direction;
+                if (nextIdx < 0) return 0;
+                if (nextIdx >= totalCount) return totalCount - 1;
+                return nextIdx;
+            } else {
+                if (conflictIndicesList.length === 0) return current;
+                let pos = conflictIndicesList.indexOf(current);
+                if (pos === -1) {
+                    pos = conflictIndicesList.findIndex(x => x > current);
+                    if (pos === -1) pos = 0;
+                } else {
+                    pos = pos + direction;
+                    if (pos < 0) pos = 0;
+                    if (pos >= conflictIndicesList.length) pos = conflictIndicesList.length - 1;
+                }
+                return conflictIndicesList[pos];
+            }
+        }
+
+        // Load captcha data for given index
+        async function loadImage(index) {
+            if(index < 0 || index >= totalCount) return;
+            currentIndex = index;
+            
+            // Highlight current cell in sidebar
+            const cells = gridContainer.children;
+            for(let i=0; i<cells.length; i++) {
+                cells[i].classList.remove('current');
+                if(parseInt(cells[i].textContent) === currentIndex) {
+                    cells[i].classList.add('current');
+                    cells[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+            
+            try {
+                captchaImg.src = '';
+                captchaImg.alt = 'Loading...';
+                
+                const response = await fetch(`/api/image?index=${index}`);
+                const data = await response.json();
+                
+                captchaImg.src = data.image_base64;
+                fileNameDisplay.textContent = data.filename;
+                
+                // Fill label
+                if (data.label) {
+                    labelInput.value = data.label;
+                } else {
+                    labelInput.value = '';
+                }
+                
+                // Always show what the AI thinks next to current input
+                labelInput.placeholder = data.ai_suggest || '????';
+                
+                // Show discrepancy warning if label != AI suggestion
+                if (data.label && data.ai_suggest && data.label !== data.ai_suggest) {
+                    fileNameDisplay.innerHTML = `${data.filename} <span style="color: #f59e0b; font-weight: bold; font-size: 0.8rem; margin-left: 0.5rem;" title="AI đoán: ${data.ai_suggest}">⚠️ Mâu thuẫn AI (${data.ai_suggest})</span>`;
+                } else {
+                    fileNameDisplay.textContent = data.filename;
+                }
+                
+                // Update progress
+                updateProgressDisplay(data.labeled_count);
+                
+                labelInput.focus();
+                if (labelInput.value) {
+                    labelInput.select();
+                }
+            } catch(e) {
+                console.error("Error loading image:", e);
+            }
+        }
+
+        // Update progress display
+        function updateProgressDisplay(labeledCount) {
+            if (filterConflicts) {
+                progressText.textContent = `Conflicts Remaining: ${conflictIndicesList.length} suspicious labels`;
+                progressFill.style.width = `100%`;
+                progressFill.style.background = `linear-gradient(90deg, #f59e0b, #ef4444)`;
+                statsBadge.textContent = `${conflictIndicesList.length} conflicts`;
+            } else {
+                const pct = totalCount > 0 ? (labeledCount / totalCount * 100).toFixed(1) : 0;
+                progressText.textContent = `Progress: ${labeledCount} / ${totalCount} (${pct}%)`;
+                progressFill.style.width = `${pct}%`;
+                progressFill.style.background = `linear-gradient(90deg, #8b5cf6, #10b981)`;
+                statsBadge.textContent = `Đã gán: ${labeledCount}/${totalCount} (${pct}%)`;
+            }
+        }
+
+        // Save current label and go to another index
+        async function saveCurrentLabelAndGoTo(targetIndex) {
+            const currentLabel = labelInput.value.trim().toUpperCase();
+            const fn = `captcha_${currentIndex}.png`;
+            
+            // Only save if input is valid (4 characters or empty to clear)
+            if(currentLabel.length === 4 || currentLabel.length === 0) {
+                try {
+                    const response = await fetch('/api/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            index: currentIndex,
+                            label: currentLabel
+                        })
+                    });
+                    const resData = await response.json();
+                    
+                    if(resData.success) {
+                        // Update local cache
+                        if(currentLabel.length === 4) {
+                            labelsMap[fn] = currentLabel;
+                        } else {
+                            delete labelsMap[fn];
+                        }
+                        
+                        // Sync conflicts list from server
+                        const confRes = await fetch('/api/conflicts');
+                        const confData = await confRes.json();
+                        conflictIndicesList = confData.conflicts || [];
+                        
+                        if (conflictIndicesList.length > 0) {
+                            toggleConflicts.disabled = false;
+                            document.getElementById('toggle-conflicts').parentElement.style.color = 'var(--text-main)';
+                        } else {
+                            toggleConflicts.disabled = true;
+                            document.getElementById('toggle-conflicts').parentElement.style.color = 'var(--text-muted)';
+                            if (filterConflicts) {
+                                toggleConflicts.checked = false;
+                                filterConflicts = false;
+                                alert("Chúc mừng! Tất cả mâu thuẫn nhãn đã được xử lý xong!");
+                            }
+                        }
+                        
+                        buildSidebarGrid();
+                    }
+                } catch(e) {
+                    console.error("Error saving label:", e);
+                }
+            }
+            
+            // Navigate
+            if(targetIndex !== undefined) {
+                loadImage(targetIndex);
+            }
+        }
+
+        // Toggle conflicts mode
+        toggleConflicts.addEventListener('change', async () => {
+            filterConflicts = toggleConflicts.checked;
+            
+            const confRes = await fetch('/api/conflicts');
+            const confData = await confRes.json();
+            conflictIndicesList = confData.conflicts || [];
+            
+            if (filterConflicts) {
+                if (conflictIndicesList.length > 0) {
+                    currentIndex = conflictIndicesList[0];
+                } else {
+                    alert("Không tìm thấy nhãn mâu thuẫn nào!");
+                    toggleConflicts.checked = false;
+                    filterConflicts = false;
+                    return;
+                }
+            } else {
+                currentIndex = 0;
+            }
+            
+            buildSidebarGrid();
+            loadImage(currentIndex);
+        });
+
+        // Keyboard hotkeys
+        document.addEventListener('keydown', (e) => {
+            if(document.activeElement === labelInput) {
+                if(e.key === 'Enter') {
+                    e.preventDefault();
+                    saveCurrentLabelAndGoTo(getNextIndex(currentIndex, 1));
+                } else if(e.key === ' ' && labelInput.value === '') {
+                    // Press Space when input is empty to fill with AI suggestion
+                    e.preventDefault();
+                    const aiSuggest = labelInput.placeholder;
+                    if(aiSuggest && aiSuggest !== '????') {
+                        labelInput.value = aiSuggest;
+                    }
+                } else if(e.key === 'ArrowRight' && labelInput.selectionStart === labelInput.value.length) {
+                    saveCurrentLabelAndGoTo(getNextIndex(currentIndex, 1));
+                } else if(e.key === 'ArrowLeft' && labelInput.selectionStart === 0) {
+                    saveCurrentLabelAndGoTo(getNextIndex(currentIndex, -1));
+                }
+            } else {
+                if(e.key === 'ArrowRight') {
+                    saveCurrentLabelAndGoTo(getNextIndex(currentIndex, 1));
+                } else if(e.key === 'ArrowLeft') {
+                    saveCurrentLabelAndGoTo(getNextIndex(currentIndex, -1));
+                }
+            }
+        });
+
+        // Click handlers
+        btnPrev.addEventListener('click', () => saveCurrentLabelAndGoTo(getNextIndex(currentIndex, -1)));
+        btnNext.addEventListener('click', () => saveCurrentLabelAndGoTo(getNextIndex(currentIndex, 1)));
+
+        // Format input
+        labelInput.addEventListener('input', () => {
+            labelInput.value = labelInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Initialize
+        fetchStatus();
+    </script>
+</body>
+</html>
